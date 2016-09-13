@@ -98,8 +98,8 @@ public class PageTurning3D implements Renderer {
     final static int FOLDER_PAGE_MASK_BG_ALPHA          = 0xE6000000;
 
     // screen width and height
-	int mWidth;
-	int mHeight;
+    int mWidth;
+    int mHeight;
     int mMaxTouchY;
     int mOriginalTouchX;
     int mOriginalTouchY;
@@ -108,30 +108,30 @@ public class PageTurning3D implements Renderer {
     int mPixelsIntervalOfMeshVertexs; 
 
     // texture width and height, OpenGL require the texture size is 2 power
-	int mTextureWidth;
-	int mTextureHeight;
+    int mTextureWidth;
+    int mTextureHeight;
 
     // the openGL texture range is {0, 1}, we need save the screen width/height
     // ratio in texture size
     float mTextureWidthRatio;
     float mTextureHeightRatio;
-	
+    
     // texture ids, only two we used, first one is front page, second is back
     // page
-	int[] mTextureIDs;
-	
+    int[] mTextureIDs;
+    
     // origin (x, y) coords againt finger touch coords
-	float mOriginX;
-	float mOriginY;
+    float mOriginX;
+    float mOriginY;
 
     // finger touch coords
-	float mTouchX;
-	float mTouchY;
+    float mTouchX;
+    float mTouchY;
     float mAngle;
 
     // the middle coords between touch coords and origin coords
-	float mMiddleX;
-	float mMiddleY;
+    float mMiddleX;
+    float mMiddleY;
 
     // from 2D perspective, the line through middle coords and perpendicular to
     // the line from touch coords to origin coords will intersect Y axis and X
@@ -212,12 +212,12 @@ public class PageTurning3D implements Renderer {
 
     // the length of segment from mTouch{X, Y} to mOrigin{X, Y}
     float mLenOfTouchOrigin;
-	
+    
     float[] mCylinderVertexs;
     float[] mCylinderTextureCoords;
     float[] mTempFloatBuffer;
     float[] mFolderPageMaskColors;
-	
+    
     // Mesh vertexs, texture coords count
     int mMeshVertexsCount;
     int mMiddleMeshVertexsCount;
@@ -236,9 +236,9 @@ public class PageTurning3D implements Renderer {
     Vertex3D[] mXVertexs;
 
     // font/back page vertexs buffer and texture coords buffer
-	FloatBuffer mFrontPageVertexsBuf;
-	FloatBuffer mFrontPageTextureCoordsBuf;
-	FloatBuffer mBackPageVertexsBuf;
+    FloatBuffer mFrontPageVertexsBuf;
+    FloatBuffer mFrontPageTextureCoordsBuf;
+    FloatBuffer mBackPageVertexsBuf;
     FloatBuffer mBackPageTextureCoordsBuf;
 
     // front cylinder and folder page 
@@ -253,8 +253,8 @@ public class PageTurning3D implements Renderer {
     FloatBuffer mFolderEdgeShadowColorsBuf;
     FloatBuffer mFolderEdgeShadowVertexsBuf;
 
-	Bitmap mFrontBitmap;
-	Bitmap mBackBitmap;
+    Bitmap mFrontBitmap;
+    Bitmap mBackBitmap;
 
     // if caller has a background bitmap, build folder page texture with background image
     // and front bitmap
@@ -262,10 +262,10 @@ public class PageTurning3D implements Renderer {
     // if caller has a pure background color, build folder page texture with this color
     // and front bitmap
     int mBackgroundColor;
-	
-	boolean mIsStart;
+    
+    boolean mIsStart;
     Context mContext;
-	
+    
     public PageTurning3D(Context context) {
         mContext            = context;
         mTextureIDs         = new int[TEXTURES_SIZE];
@@ -307,14 +307,14 @@ public class PageTurning3D implements Renderer {
     /**
      * Start page flip
      */
-	public final void start(float touchX, float touchY) {
-		if (touchX > mWidth/2) {
-			mOriginX = mWidth;
+    public final void start(float touchX, float touchY) {
+        if (touchX > mWidth/2) {
+            mOriginX = mWidth;
         }
         else {
-			mOriginX = 0;
+            mOriginX = 0;
         }
-		
+        
         // the touch point might out of the screen size in Android
         // so we need to check and correct it
         if (touchY > mHeight-2) {
@@ -324,31 +324,31 @@ public class PageTurning3D implements Renderer {
             touchY = 0;
         }
 
-		if (touchY > mHeight/2) {
-			mOriginY = mHeight;
+        if (touchY > mHeight/2) {
+            mOriginY = mHeight;
         }
         else {
-			mOriginY = 0;
+            mOriginY = 0;
         }
 
         mOriginX    = translateToOpenGLCoordX(mOriginX);
         mOriginY    = translateToOpenGLCoordY(mOriginY);
-		mTouchX     = translateToOpenGLCoordX(touchX);
-		mTouchY     = translateToOpenGLCoordY(touchY);
+        mTouchX     = translateToOpenGLCoordX(touchX);
+        mTouchY     = translateToOpenGLCoordY(touchY);
 
         // correct touch y, it must be less than max TouchY
         correctTouchXY();
-		mMiddleX    = (mTouchX+mOriginX)*0.5f;
-		mMiddleY    = (mTouchY+mOriginY)*0.5f;
-		mIsStart    = true;
+        mMiddleX    = (mTouchX+mOriginX)*0.5f;
+        mMiddleY    = (mTouchY+mOriginY)*0.5f;
+        mIsStart    = true;
 
-		computeKeyPointsCoords();
-	}
+        computeKeyPointsCoords();
+    }
 
     /**
      *  Move page 
      */
-	public final void move(float touchX, float touchY) {
+    public final void move(float touchX, float touchY) {
         // the touch point might out of the screen size in Android
         // so we need check and correct it
         if (touchY > mHeight-2) {
@@ -358,32 +358,32 @@ public class PageTurning3D implements Renderer {
             touchY = 0;
         }
 
-		mTouchX     = translateToOpenGLCoordX(touchX);
-		mTouchY     = translateToOpenGLCoordY(touchY);
+        mTouchX     = translateToOpenGLCoordX(touchX);
+        mTouchY     = translateToOpenGLCoordY(touchY);
 
         // correct touch y, it must be less than max TouchY
         correctTouchXY();
-		mMiddleX    = (mTouchX+mOriginX)*0.5f;
-		mMiddleY    = (mTouchY+mOriginY)*0.5f;
+        mMiddleX    = (mTouchX+mOriginX)*0.5f;
+        mMiddleY    = (mTouchY+mOriginY)*0.5f;
 
-		computeKeyPointsCoords();
-	}
-	
+        computeKeyPointsCoords();
+    }
+    
     /**
      * Stop page flip
      */
-	public final void stop() {
-		mIsStart    = false;
+    public final void stop() {
+        mIsStart    = false;
         mBackgrounBitmap = null;
-	}
+    }
 
     /**
      * Draw on screen
      */
-	public void onDrawFrame(GL10 gl) {
-		if (!mIsStart)
-			return;
-		
+    public void onDrawFrame(GL10 gl) {
+        if (!mIsStart)
+            return;
+        
         gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
         gl.glMatrixMode(GL10.GL_MODELVIEW);
         gl.glLoadIdentity();
@@ -407,7 +407,7 @@ public class PageTurning3D implements Renderer {
         temp[8] = 0;
         
         ByteBuffer byteBuf = ByteBuffer.allocateDirect(9*4);
-		byteBuf.order(ByteOrder.nativeOrder());
+        byteBuf.order(ByteOrder.nativeOrder());
         FloatBuffer buf = byteBuf.asFloatBuffer();
         buf.put(temp, 0, 9);
         buf.position(0);
@@ -433,7 +433,7 @@ public class PageTurning3D implements Renderer {
         temp[10] = mHeight/2;
         temp[11] = 0;
         ByteBuffer byteBuf = ByteBuffer.allocateDirect(12*4);
-		byteBuf.order(ByteOrder.nativeOrder());
+        byteBuf.order(ByteOrder.nativeOrder());
         FloatBuffer buf = byteBuf.asFloatBuffer();
         buf.put(temp, 0, 12);
         buf.position(0);
@@ -447,7 +447,7 @@ public class PageTurning3D implements Renderer {
         temp[6] = 0;
         temp[7] = mTextureHeightRatio;
         byteBuf = ByteBuffer.allocateDirect(8*4);
-		byteBuf.order(ByteOrder.nativeOrder());
+        byteBuf.order(ByteOrder.nativeOrder());
         FloatBuffer buf1 = byteBuf.asFloatBuffer();
         buf1.put(temp, 0, 8);
         buf1.position(0);
@@ -455,7 +455,7 @@ public class PageTurning3D implements Renderer {
         gl.glVertexPointer(3, GL10.GL_FLOAT, 0, buf);
         gl.glTexCoordPointer(2, GL10.GL_FLOAT, 0, buf1);
         gl.glDrawArrays(GL10.GL_TRIANGLES, 0, 3);
-		*/
+        */
         
         // 1. draw back page
         gl.glBindTexture(GL10.GL_TEXTURE_2D, mTextureIDs[BACK_PAGE_TEXUTRE_ID]);
@@ -515,29 +515,29 @@ public class PageTurning3D implements Renderer {
         gl.glDrawArrays(GL10.GL_TRIANGLES, 0, mFolderPageVertexsCount);
         gl.glDisableClientState(GL10.GL_COLOR_ARRAY);
         gl.glDisable(GL10.GL_BLEND);
-	}
+    }
 
 
     /*
      * This function should be called when surface is changed
      */
-	public void onSurfaceChanged(GL10 gl, int width, int height) {
+    public void onSurfaceChanged(GL10 gl, int width, int height) {
         gl.glMatrixMode(GL10.GL_PROJECTION);
         gl.glLoadIdentity();
         gl.glViewport(0, 0, width, height);
         GLU.gluOrtho2D(gl, -width/2, width/2, -height/2, height/2);
         mWidth              = width;
         mHeight             = height;
-		mTextureWidth       = getNextHighestPO2(mWidth);
-		mTextureHeight      = getNextHighestPO2(mHeight);
+        mTextureWidth       = getNextHighestPO2(mWidth);
+        mTextureHeight      = getNextHighestPO2(mHeight);
         mTextureWidthRatio  = (float)mWidth/mTextureWidth;
         mTextureHeightRatio = (float)mHeight/mTextureHeight;
-	}
+    }
 
     /*
      * This function should be called when surface is created
      */
-	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+    public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         gl.glClearColor(0, 0, 0, 1f);
         gl.glClearDepthf(1.0f);
         gl.glShadeModel(GL10.GL_SMOOTH);
@@ -546,30 +546,30 @@ public class PageTurning3D implements Renderer {
         gl.glEnable(GL10.GL_LINE_SMOOTH);
         gl.glHint(GL10.GL_POINT_SMOOTH_HINT, GL10.GL_NICEST);
         gl.glHint(GL10.GL_LINE_SMOOTH_HINT, GL10.GL_NICEST);*/
-	}
+    }
 
     /*
      * Create texture according to bitmap
      */
-	private void createTextures(GL10 gl) {
-		System.gc();
+    private void createTextures(GL10 gl) {
+        System.gc();
 
         gl.glEnable(GL10.GL_TEXTURE_2D);
-		
-		Canvas c        = new Canvas();
+        
+        Canvas c        = new Canvas();
         Paint paint     = new Paint(Paint.ANTI_ALIAS_FLAG);
-		Bitmap bitmap   = Bitmap.createBitmap(mTextureWidth, mTextureHeight,
+        Bitmap bitmap   = Bitmap.createBitmap(mTextureWidth, mTextureHeight,
                                                 Config.ARGB_8888);
 
         // 1. Create front page texture
-		c.setBitmap(bitmap);
-		c.drawBitmap(mFrontBitmap, 0, 0, null);
+        c.setBitmap(bitmap);
+        c.drawBitmap(mFrontBitmap, 0, 0, null);
         gl.glGenTextures(TEXTURES_SIZE, mTextureIDs, 0);
-		gl.glBindTexture(GL10.GL_TEXTURE_2D, mTextureIDs[FRONT_PAGE_TEXTURE_ID]);
-		GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
-		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
+        gl.glBindTexture(GL10.GL_TEXTURE_2D, mTextureIDs[FRONT_PAGE_TEXTURE_ID]);
+        GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
                             GL10.GL_LINEAR);
-		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER,
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER,
                             GL10.GL_LINEAR);
 
         // 2. Create folder page texture
@@ -583,27 +583,27 @@ public class PageTurning3D implements Renderer {
         }
 
         paint.setAlpha(FOLDER_PAGE_MASK_ALPHA);
-		c.drawBitmap(mFrontBitmap, 0, 0, paint);
-		gl.glBindTexture(GL10.GL_TEXTURE_2D, mTextureIDs[FOLDER_PAGE_TEXTURE_ID]);
-		GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
-		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
+        c.drawBitmap(mFrontBitmap, 0, 0, paint);
+        gl.glBindTexture(GL10.GL_TEXTURE_2D, mTextureIDs[FOLDER_PAGE_TEXTURE_ID]);
+        GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
                             GL10.GL_LINEAR);
-		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER,
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER,
                             GL10.GL_LINEAR);
 
         // 3. Create back page texture
-		c.drawBitmap(mBackBitmap, 0, 0, null);
-		gl.glBindTexture(GL10.GL_TEXTURE_2D, mTextureIDs[BACK_PAGE_TEXUTRE_ID]);
-		GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
-		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
+        c.drawBitmap(mBackBitmap, 0, 0, null);
+        gl.glBindTexture(GL10.GL_TEXTURE_2D, mTextureIDs[BACK_PAGE_TEXUTRE_ID]);
+        GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER,
                             GL10.GL_LINEAR);
-		gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER,
+        gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER,
                             GL10.GL_LINEAR);
 
-		bitmap.recycle();
-		bitmap = null;
-		System.gc();
-	}
+        bitmap.recycle();
+        bitmap = null;
+        System.gc();
+    }
 
 
     /**
@@ -706,14 +706,14 @@ public class PageTurning3D implements Renderer {
     /**
      * Compute key points coords in normal case
      */
-	private void computePointsCoordsNormalCase() {
-		float distanceX = mMiddleX - mOriginX;
-		float distanceY = mMiddleY - mOriginY;
-		
+    private void computePointsCoordsNormalCase() {
+        float distanceX = mMiddleX - mOriginX;
+        float distanceY = mMiddleY - mOriginY;
+        
         // compute intersection point on X axis
-		mXFolderX = mMiddleX + distanceY*distanceY/distanceX;
-		mXFolderY = mOriginY;
-		
+        mXFolderX = mMiddleX + distanceY*distanceY/distanceX;
+        mXFolderY = mOriginY;
+        
         // compute intersection point X1 which is 1/4 length from touchXY to XFolderXY
         mXFolderX1 = mOriginX + 1.75f*(mXFolderX - mOriginX);
         mXFolderY1 = mXFolderY;
@@ -723,8 +723,8 @@ public class PageTurning3D implements Renderer {
         mXFolderY0 = mXFolderY;
 
         // compute intersection point on Y axis
-		mYFolderX = mOriginX;
-		mYFolderY = mMiddleY + distanceX*distanceX/distanceY;
+        mYFolderX = mOriginX;
+        mYFolderY = mMiddleY + distanceX*distanceX/distanceY;
 
         // compute intersection point Y0 which is 1/4 length from YFolderXY to OriginalXY
         mYFolderX0 = mYFolderX;
@@ -790,12 +790,12 @@ public class PageTurning3D implements Renderer {
         createFrontPageAndBackPage();
         computeCylinderVertexs();
         createFolderPage();
-	}
-	
+    }
+    
     /**
      * Create vertexs and texture coords for front and back page
      */
-	private final void createFrontPageAndBackPage() {
+    private final void createFrontPageAndBackPage() {
         float cornerX = -mOriginX;
         float cornerY = -mOriginY;
 
@@ -820,51 +820,51 @@ public class PageTurning3D implements Renderer {
          * [4]: mYFolderX1, mYFolderY1
          * [0]: -cornerX, cornerY
          */
-		// 1. build 3 triangles for front page, use GL_TRIANGLE_FAN to draw,
+        // 1. build 3 triangles for front page, use GL_TRIANGLE_FAN to draw,
         // so only 5 vertexes are needed
         // start front mOrigin{X, Y} 
         // Triangle 1: [1] -> [2] -> [3]
         // Triangle 2: [1] -> [3] -> [4]
         // Triangle 3: [1] -> [4] -> [5]
-		mTempFloatBuffer[0] = cornerX;
-		mTempFloatBuffer[1] = cornerY;
-		mTempFloatBuffer[2] = 0;
-		
-		mTempFloatBuffer[3] = cornerX;
-		mTempFloatBuffer[4] = -cornerY;
-		mTempFloatBuffer[5] = 0;
-		
-		mTempFloatBuffer[6] = mXFolderX1;
-		mTempFloatBuffer[7] = mXFolderY1;
-		mTempFloatBuffer[8] = 0;
-		
-		mTempFloatBuffer[9] = mYFolderX1;
-		mTempFloatBuffer[10] = mYFolderY1;
-		mTempFloatBuffer[11] = 0;
-		
-		mTempFloatBuffer[12] = -cornerX;
-		mTempFloatBuffer[13] = cornerY;
-		mTempFloatBuffer[14] = 0;
-		
+        mTempFloatBuffer[0] = cornerX;
+        mTempFloatBuffer[1] = cornerY;
+        mTempFloatBuffer[2] = 0;
+        
+        mTempFloatBuffer[3] = cornerX;
+        mTempFloatBuffer[4] = -cornerY;
+        mTempFloatBuffer[5] = 0;
+        
+        mTempFloatBuffer[6] = mXFolderX1;
+        mTempFloatBuffer[7] = mXFolderY1;
+        mTempFloatBuffer[8] = 0;
+        
+        mTempFloatBuffer[9] = mYFolderX1;
+        mTempFloatBuffer[10] = mYFolderY1;
+        mTempFloatBuffer[11] = 0;
+        
+        mTempFloatBuffer[12] = -cornerX;
+        mTempFloatBuffer[13] = cornerY;
+        mTempFloatBuffer[14] = 0;
+        
         // the Front page vertexes coords
         mFrontPageVertexsBuf.put(mTempFloatBuffer, 0, FRONT_PAGE_VERTEXS_SIZE);
         mFrontPageVertexsBuf.position(0);
-		
-		// 2. create vertexes for Back page
+        
+        // 2. create vertexes for Back page
         // Triangle: [5] -> [3] -> [4]
-		mTempFloatBuffer[0] = mOriginX;
-		mTempFloatBuffer[1] = mOriginY;
-		mTempFloatBuffer[2] = 0;
-		
-		mTempFloatBuffer[3] = mXFolderX1;
-		mTempFloatBuffer[4] = mXFolderY1;
-		mTempFloatBuffer[5] = 0;
-		
-		mTempFloatBuffer[6] = mYFolderX1;
-		mTempFloatBuffer[7] = mYFolderY1;
-		mTempFloatBuffer[8] = 0;
-		
-		mBackPageVertexsBuf.put(mTempFloatBuffer, 0, BACK_PAGE_VERTEXS_SIZE);
+        mTempFloatBuffer[0] = mOriginX;
+        mTempFloatBuffer[1] = mOriginY;
+        mTempFloatBuffer[2] = 0;
+        
+        mTempFloatBuffer[3] = mXFolderX1;
+        mTempFloatBuffer[4] = mXFolderY1;
+        mTempFloatBuffer[5] = 0;
+        
+        mTempFloatBuffer[6] = mYFolderX1;
+        mTempFloatBuffer[7] = mYFolderY1;
+        mTempFloatBuffer[8] = 0;
+        
+        mBackPageVertexsBuf.put(mTempFloatBuffer, 0, BACK_PAGE_VERTEXS_SIZE);
         mBackPageVertexsBuf.position(0);
 
         // 3. create shadow vertexes for back page
@@ -907,14 +907,14 @@ public class PageTurning3D implements Renderer {
         mBackPageShadowVertexsBuf.put(mTempFloatBuffer, 0,
                                       BACK_PAGE_SHADOW_VERTEXS_SIZE);
         mBackPageShadowVertexsBuf.position(0);
-		
+        
         // Set textures coords for vertexes
         // First we need transfer openGL world coordinate system to Android 2D
         // drawing coordinate system
         float halfWidth     = (float)mWidth/2;
         float halfHeight    = (float)mHeight/2;
-		float folderX       = (mXFolderX1+halfWidth)/mTextureWidth;
-		float folderY       = (halfHeight-mYFolderY1)/mTextureHeight;
+        float folderX       = (mXFolderX1+halfWidth)/mTextureWidth;
+        float folderY       = (halfHeight-mYFolderY1)/mTextureHeight;
 
         float originX = 0;
         if (mOriginX > 0) {
@@ -928,7 +928,7 @@ public class PageTurning3D implements Renderer {
 
         float originX1 = mTextureWidthRatio-originX;
         float originY1 = mTextureHeightRatio-originY;
-		
+        
         // 1. Create front page texture coords
         mTempFloatBuffer[0] = originX1;
         mTempFloatBuffer[1] = originY1;
@@ -962,7 +962,7 @@ public class PageTurning3D implements Renderer {
         mBackPageTextureCoordsBuf.put(mTempFloatBuffer, 0,
                                       BACK_PAGE_TEXTURE_COORDS_SIZE);
         mBackPageTextureCoordsBuf.position(0);
-	}
+    }
 
     /**
      * compute cylinder vertexes
@@ -1261,56 +1261,53 @@ public class PageTurning3D implements Renderer {
 
     private void saveBitmap(Bitmap bitmap) {
         OutputStream outStream = null;
-          File file = new File("/sdcard/temp.png");
-            try {
-                   outStream = new FileOutputStream(file);
-                      bitmap.compress(Bitmap.CompressFormat.PNG, 100, outStream);
-                         outStream.flush();
-                            outStream.close();
+        File file = new File("/sdcard/temp.png");
+        try {
+            outStream = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outStream);
+            outStream.flush();
+            outStream.close();
 
-                               Log.i("Hub", "OK, Image Saved to SD");
-                                  Log.i("Hub", "height = "+ bitmap.getHeight() + ", width = " + bitmap.getWidth());
+            Log.i("Hub", "OK, Image Saved to SD");
+            Log.i("Hub", "height = "+ bitmap.getHeight() + ", width = " + bitmap.getWidth());
 
-                                    } catch (FileNotFoundException e) {
-
-                                           e.printStackTrace();
-                                              Log.i("Hub", "FileNotFoundException: "+ e.toString());
-
-                                                } catch (IOException e) {
-
-                                                       e.printStackTrace();
-                                                          Log.i("Hub", "IOException: "+ e.toString());
-                                                            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Log.i("Hub", "FileNotFoundException: "+ e.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.i("Hub", "IOException: "+ e.toString());
+        }
     }
 
     private final Bitmap getBitmap(int id) {
-		InputStream front = mContext.getResources().openRawResource(id);
-	    Bitmap bitmap = null;	
-		try {
-			bitmap = BitmapFactory.decodeStream(front);
-		} finally {
-			try {
-				front.close();
-			} catch (IOException e) {
-				
-			}
-		}
+        InputStream front = mContext.getResources().openRawResource(id);
+        Bitmap bitmap = null;    
+        try {
+            bitmap = BitmapFactory.decodeStream(front);
+        } finally {
+            try {
+                front.close();
+            } catch (IOException e) {
+                
+            }
+        }
 
         return bitmap;
     }
 
     private final int getBgColor(int id) {
-		InputStream front = mContext.getResources().openRawResource(id);
-	    Bitmap bitmap = null;	
-		try {
-			bitmap = BitmapFactory.decodeStream(front);
-		} finally {
-			try {
-				front.close();
-			} catch (IOException e) {
-				
-			}
-		}
+        InputStream front = mContext.getResources().openRawResource(id);
+        Bitmap bitmap = null;    
+        try {
+            bitmap = BitmapFactory.decodeStream(front);
+        } finally {
+            try {
+                front.close();
+            } catch (IOException e) {
+                
+            }
+        }
 
         int color = 0;
         if (null != bitmap) {
@@ -1324,16 +1321,16 @@ public class PageTurning3D implements Renderer {
         return color;
     }
 
-	private int getNextHighestPO2(int n) {
-		n -= 1;
-		n = n | (n >> 1);
-		n = n | (n >> 2);
-		n = n | (n >> 4);
-		n = n | (n >> 8);
-		n = n | (n >> 16);
-		n = n | (n >> 32);
-		return n + 1;
-	}
+    private int getNextHighestPO2(int n) {
+        n -= 1;
+        n = n | (n >> 1);
+        n = n | (n >> 2);
+        n = n | (n >> 4);
+        n = n | (n >> 8);
+        n = n | (n >> 16);
+        n = n | (n >> 32);
+        return n + 1;
+    }
 
     /**
      * Translate Android coord to OpenGL coord
@@ -1406,18 +1403,18 @@ public class PageTurning3D implements Renderer {
      */
     private void createBuffers() {
         // 1. Front page vertexes buffer
-		ByteBuffer byteBuf = ByteBuffer.allocateDirect(FRONT_PAGE_VERTEXS_SIZE<<2);
-		byteBuf.order(ByteOrder.nativeOrder());
+        ByteBuffer byteBuf = ByteBuffer.allocateDirect(FRONT_PAGE_VERTEXS_SIZE<<2);
+        byteBuf.order(ByteOrder.nativeOrder());
         mFrontPageVertexsBuf = byteBuf.asFloatBuffer();
 
         // 2. Back page vertexes buffer
-		byteBuf = ByteBuffer.allocateDirect(BACK_PAGE_VERTEXS_SIZE<<2);
-		byteBuf.order(ByteOrder.nativeOrder());
+        byteBuf = ByteBuffer.allocateDirect(BACK_PAGE_VERTEXS_SIZE<<2);
+        byteBuf.order(ByteOrder.nativeOrder());
         mBackPageVertexsBuf = byteBuf.asFloatBuffer();
 
         // 3. Front half cylinder vertexes buffer
-		byteBuf = ByteBuffer.allocateDirect(mHalfCylinderVertexsSize<<2);//HALF_CYLINDER_VERTEXS_SIZE*4);
-		byteBuf.order(ByteOrder.nativeOrder());
+        byteBuf = ByteBuffer.allocateDirect(mHalfCylinderVertexsSize<<2);//HALF_CYLINDER_VERTEXS_SIZE*4);
+        byteBuf.order(ByteOrder.nativeOrder());
         mFrontHalfCylinderVertexsBuf = byteBuf.asFloatBuffer();
 
         // 4. Back half cylinder vertexes buffer

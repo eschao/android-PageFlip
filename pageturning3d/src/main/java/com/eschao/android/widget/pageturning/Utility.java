@@ -10,30 +10,30 @@ import android.graphics.Bitmap;
 
 public class Utility {
 
-	public static final FloatBuffer toFloatBuffer(float[] data) {
-		ByteBuffer byteBuf = ByteBuffer.allocateDirect(data.length*4);
-		byteBuf.order(ByteOrder.nativeOrder());
-		FloatBuffer floatBuf = byteBuf.asFloatBuffer();
-		floatBuf.put(data);
-		floatBuf.position(0);
-		return floatBuf;
-	}
-	
-	public static final IntBuffer toIntBuffer(int[] data) {
-		ByteBuffer byteBuf = ByteBuffer.allocateDirect(data.length*4);
-		byteBuf.order(ByteOrder.nativeOrder());
-		IntBuffer intBuf = byteBuf.asIntBuffer();
-		intBuf.put(data);
-		intBuf.position(0);
-		return intBuf;
-	}
-	
-	public static final ByteBuffer toByteBuffer(byte[] data) {
-		ByteBuffer byteBuf = ByteBuffer.allocateDirect(data.length);
-		byteBuf.put(data);
-		byteBuf.position(0);
-		return byteBuf;
-	}
+    public static final FloatBuffer toFloatBuffer(float[] data) {
+        ByteBuffer byteBuf = ByteBuffer.allocateDirect(data.length*4);
+        byteBuf.order(ByteOrder.nativeOrder());
+        FloatBuffer floatBuf = byteBuf.asFloatBuffer();
+        floatBuf.put(data);
+        floatBuf.position(0);
+        return floatBuf;
+    }
+    
+    public static final IntBuffer toIntBuffer(int[] data) {
+        ByteBuffer byteBuf = ByteBuffer.allocateDirect(data.length*4);
+        byteBuf.order(ByteOrder.nativeOrder());
+        IntBuffer intBuf = byteBuf.asIntBuffer();
+        intBuf.put(data);
+        intBuf.position(0);
+        return intBuf;
+    }
+    
+    public static final ByteBuffer toByteBuffer(byte[] data) {
+        ByteBuffer byteBuf = ByteBuffer.allocateDirect(data.length);
+        byteBuf.put(data);
+        byteBuf.position(0);
+        return byteBuf;
+    }
 
     public static final int computeAverageColor(Bitmap bitmap, int pixels) {
         int width = bitmap.getWidth();
