@@ -1,2 +1,2 @@
 # android-PageTurning3D
-3D Page Turning effect
+Page Turning of 3D effect (TBD ...)
