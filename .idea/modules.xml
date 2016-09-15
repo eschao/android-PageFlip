@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file:///Volumes/Data/github/android-PageTurning3D/android-PageTurning3D.iml" filepath="/Volumes/Data/github/android-PageTurning3D/android-PageTurning3D.iml" />
+      <module fileurl="file:///Volumes/Data/github/android-PageTurning3D/pageturning3d/pageturning3d.iml" filepath="/Volumes/Data/github/android-PageTurning3D/pageturning3d/pageturning3d.iml" />
+      <module fileurl="file:///Volumes/Data/github/android-PageTurning3D/sample/sample.iml" filepath="/Volumes/Data/github/android-PageTurning3D/sample/sample.iml" />
+    </modules>
+  </component>
+</project>

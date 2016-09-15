@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">PageTurning3D</string>
+    <string name="title_activity_main">PageTurning-Sample</string>
 </resources>
