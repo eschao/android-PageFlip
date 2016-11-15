@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.eschao.android.widget.sample">
+          package="com.eschao.android.widget.sample.pageflip">
 
     <application android:allowBackup="true"
                  android:icon="@mipmap/ic_launcher"

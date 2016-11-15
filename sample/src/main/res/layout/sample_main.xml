@@ -5,12 +5,7 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical"
-    tools:context="com.eschao.android.widget.sample.SampleActivity"
+    tools:context="com.eschao.android.widget.sample.pageflip.SampleActivity"
 >
-    <com.eschao.android.widget.sample.SampleView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:id="@+id/sample_view"
-     />
 
 </LinearLayout>

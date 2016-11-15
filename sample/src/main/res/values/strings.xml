@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">PageTurning3D</string>
-    <string name="title_activity_main">PageTurning-Sample</string>
+    <string name="app_name">PageFlipSample</string>
+    <string name="title_activity_main">PageFlip-Sample</string>
 </resources>

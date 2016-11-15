@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file:///Volumes/Data/github/android-PageTurning3D/android-PageTurning3D.iml" filepath="/Volumes/Data/github/android-PageTurning3D/android-PageTurning3D.iml" />
-      <module fileurl="file:///Volumes/Data/github/android-PageTurning3D/pageturning3d/pageturning3d.iml" filepath="/Volumes/Data/github/android-PageTurning3D/pageturning3d/pageturning3d.iml" />
-      <module fileurl="file:///Volumes/Data/github/android-PageTurning3D/sample/sample.iml" filepath="/Volumes/Data/github/android-PageTurning3D/sample/sample.iml" />
+      <module fileurl="file:///Volumes/Data/github/android-PageFlip/PageFlip/PageFlip.iml" filepath="/Volumes/Data/github/android-PageFlip/PageFlip/PageFlip.iml" />
+      <module fileurl="file:///Volumes/Data/github/android-PageFlip/Sample/sample.iml" filepath="/Volumes/Data/github/android-PageFlip/Sample/sample.iml" />
+      <module fileurl="file:///Volumes/Data/github/android-PageFlip/android-PageFlip.iml" filepath="/Volumes/Data/github/android-PageFlip/android-PageFlip.iml" />
     </modules>
   </component>
 </project>

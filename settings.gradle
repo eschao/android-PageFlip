@@ -1,1 +1,1 @@
-include ':sample', ':pageturning3d'
+include ':Sample', ':PageFlip'
