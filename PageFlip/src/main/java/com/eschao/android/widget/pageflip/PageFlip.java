@@ -47,7 +47,7 @@ import static android.opengl.GLES20.glUseProgram;
 import static android.opengl.GLES20.glViewport;
 
 /**
- * 3D style page flip
+ * 3D Style Page Flip
  *
  * @author escchao
  */
@@ -102,25 +102,26 @@ public class PageFlip {
     // view size
     private GLViewRect mViewRect;
 
-    // the pixels interval of every two mesh vertexes
+    // the pixel size for each mesh
     private int mPixelsOfMesh;
 
-    // texture ids, only two we used, first one is front page, second is back
-    // page
+    // gradient shadow texture id
     private int mGradientShadowTextureID;
 
     // touch point and last touch point
     private PointF mTouchP;
+    // the last touch point (could be deleted?)
     private PointF mLastTouchP;
+    // the first touch point when finger down on the screen
     private PointF mStartTouchP;
-
     // the middle point between touch point and origin point
     private PointF mMiddleP;
 
-    // from 2D perspective, the line through middle point and perpendicular to
-    // the line from touch point to origin point will intersect Y axis and X
-    // axis, The point on Y axis is mYFoldP, the mXFoldP is on X axis. The
-    // mY{X}FoldP1 is up mY{X}FoldP, The mY{X}FoldP0 is under mY{X}FoldP
+    // from 2D perspective, the line will intersect Y axis and X axis that being
+    // through middle point and perpendicular to the line which is from touch
+    // point to origin point, The point on Y axis is mYFoldP, the mXFoldP is on
+    // X axis. The mY{X}FoldP1 is up mY{X}FoldP, The mY{X}FoldP0 is under
+    // mY{X}FoldP
     //
     //        <----- Flip
     //                          ^ Y
@@ -159,6 +160,7 @@ public class PageFlip {
     //          \ |
     //       A ( \|
     // X <--------+ originP
+    //
     // A is angle between X axis and line from mTouchP to originP
     // mStartAngle and mEndAngle is range degree of A
     private float mMaxT2OAngleTan;
@@ -582,13 +584,13 @@ public class PageFlip {
             if (mPages[SECOND_PAGE] == null &&
                 dx > 0 &&
                 mListener != null &&
-                mListener.canBackwardFlip()) {
+                mListener.canFlipBackward()) {
                 mStartTouchP.x = originP.x;
                 dx = (touchX - mStartTouchP.x);
                 mFlipState = PageFlipState.BACKWARD_FLIP;
             }
             else if (mListener != null &&
-                     mListener.canForwardFlip() &&
+                     mListener.canFlipForward() &&
                      (dx < 0 && originP.x > 0 || dx > 0 && originP.x < 0)) {
                 mFlipState = PageFlipState.FORWARD_FLIP;
             }
@@ -774,7 +776,7 @@ public class PageFlip {
         if (!hasSecondPage &&
             x < diagonalP.x + page.width * 0.3f &&
             mListener != null &&
-            mListener.canBackwardFlip()) {
+            mListener.canFlipBackward()) {
             mFlipState = PageFlipState.BACKWARD_FLIP;
             mKValue = tanOfBackwardAngle;
             start.set((int)diagonalP.x,
@@ -783,7 +785,7 @@ public class PageFlip {
         }
         // forward flip
         else if (mListener != null &&
-                 mListener.canForwardFlip() &&
+                 mListener.canFlipForward() &&
                  page.isXInRange(x, 0.3f)) {
             mFlipState = PageFlipState.FORWARD_FLIP;
             mKValue = tanOfForwardAngle;
@@ -871,8 +873,10 @@ public class PageFlip {
                         mYFoldP1.x = mXFoldP1.x;
                     }
                     else {
-                        mYFoldP1.y = originP.y + (mXFoldP1.x - originP.x) / mKValue;
-                        mYFoldP0.y = originP.y + (mXFoldP0.x - originP.x) / mKValue;
+                        mYFoldP1.y = originP.y + (mXFoldP1.x - originP.x)
+                                                 / mKValue;
+                        mYFoldP0.y = originP.y + (mXFoldP0.x - originP.x)
+                                                 / mKValue;
                     }
 
                     // re-compute mesh count
@@ -1272,7 +1276,7 @@ public class PageFlip {
      *
      * @param x0 X of point on axis
      * @param y0 Y of point on axis
-     * @param tX X of xFoldP1 point in rotated coordinate syste
+     * @param tX X of xFoldP1 point in rotated coordinate system
      * @param sinA Sin value of page curling angle
      * @param cosA Cos value of page curling angel
      * @param coordX X of texture coordinate
@@ -1455,7 +1459,8 @@ public class PageFlip {
         mFoldFrontBaseShadow.vertexZ = -0.5f;
 
         // add two vertexes to connect with the unfold front page
-        page.buildVertexesOfPageWhenSlop(mFoldFrontVertexes, mXFoldP1, mYFoldP1, mKValue);
+        page.buildVertexesOfPageWhenSlop(mFoldFrontVertexes, mXFoldP1, mYFoldP1,
+                                         mKValue);
         mFoldFrontVertexes.toFloatBuffer();
 
         // compute vertexes of fold edge shadow

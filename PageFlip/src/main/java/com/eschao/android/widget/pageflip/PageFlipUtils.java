@@ -32,8 +32,8 @@ public class PageFlipUtils {
     /**
      * Compute average color for given bitmap
      *
-     * @param bitmap Bitmap object
-     * @param pixels How many sample pixels is used to compute
+     * @param bitmap bitmap object
+     * @param pixels how many sample pixels are used to compute
      * @return Average color
      */
     public static int computeAverageColor(Bitmap bitmap, int pixels) {
@@ -105,9 +105,9 @@ public class PageFlipUtils {
     }
 
     /**
-     * Create gradient bitmap for drawing fold back part of page
+     * Create gradient bitmap for drawing lighting effect on back of fold page
      *
-     * @return Gradient bitmap object
+     * @return gradient bitmap object
      */
     public static Bitmap createGradientBitmap() {
         Canvas c = new Canvas();

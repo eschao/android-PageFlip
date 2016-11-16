@@ -129,7 +129,7 @@ public final class GLViewRect {
     }
 
     /**
-     * Get minimal value from width and height
+     * Get minimal value between width and height
      *
      * @return minimal value
      */

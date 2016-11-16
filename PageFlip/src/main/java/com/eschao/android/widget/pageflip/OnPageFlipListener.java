@@ -24,16 +24,16 @@ package com.eschao.android.widget.pageflip;
 public interface OnPageFlipListener {
 
     /**
-     * Can page forward flip?
+     * Can page flip forward?
      *
-     * @return True if page can forward flip
+     * @return true if page can flip forward
      */
-    boolean canForwardFlip();
+    boolean canFlipForward();
 
     /**
-     * Can page backward flip?
+     * Can page flip backward?
      *
-     * @return True if page can backward flip
+     * @return true if page can flip backward
      */
-    boolean canBackwardFlip();
+    boolean canFlipBackward();
 }

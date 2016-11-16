@@ -32,7 +32,7 @@ import static android.opengl.GLES20.glGetShaderiv;
 import static android.opengl.GLES20.glShaderSource;
 
 /**
- * GLSL shader which is used to load shader script from resources
+ * GLSL shader class is used to load and compile shader script
  *
  * @author eschao
  */
@@ -42,10 +42,10 @@ public class GLShader {
     private final static String TAG = "GLShader";
 
     // shader handle
-    protected int hShader;
+    int hShader;
 
     /**
-     * Default cosntrcutor
+     * Default constructor
      */
     public GLShader() {
         hShader = 0;
@@ -58,10 +58,10 @@ public class GLShader {
      * @param type  GL_VERTEX_SHADER or GL_FRAGMENT_SHADER
      * @param resId script resource id
      * @return self
-     * @throws PageFlipException if fail to compile GLSL script
+     * @throws PageFlipException if fail to compile shader script
      */
     public GLShader compile(Context context, int type, int resId)
-    throws PageFlipException {
+                                                    throws PageFlipException {
         // read shader scripts from resource
         String codes = readGLSLFromResource(context, resId);
         if (codes.length() < 1) {
@@ -88,11 +88,11 @@ public class GLShader {
                 Log.e(TAG, "Compile shader error: " +
                            glGetShaderInfoLog(hShader));
                 glDeleteShader(hShader);
-                throw new PageFlipException("Can'top compile shader for" +
+                throw new PageFlipException("Can't compile shader for" +
                                             "type: " + type);
             }
         } else {
-            throw new PageFlipException("Can'top create shader. Error: " +
+            throw new PageFlipException("Can't create shader. Error: " +
                                         glGetError());
         }
 
@@ -112,22 +112,22 @@ public class GLShader {
     /**
      * Get shader handle
      *
-     * @return shader shandle
+     * @return shader handle
      */
     public int handle() {
         return hShader;
     }
 
     /**
-     * Read GLSL script from resources
+     * Read shader script from resources
      *
      * @param context android context
      * @param resId script resource id
-     * @return GLSL script contents
-     * @throws PageFlipException If fail to read script from resources
+     * @return shader script contents
+     * @throws PageFlipException if fail to read script from resources
      */
-    String readGLSLFromResource(Context context, int resId)
-    throws PageFlipException {
+    String readGLSLFromResource(Context context, int resId) throws
+                                                            PageFlipException {
         StringBuilder s = new StringBuilder();
         BufferedReader reader = null;
 

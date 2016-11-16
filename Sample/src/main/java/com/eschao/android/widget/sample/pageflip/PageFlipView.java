@@ -62,7 +62,7 @@ public class PageFlipView extends GLSurfaceView implements Renderer {
                  .setShadowWidthOfFoldEdges(5, 60, 0.3f)
                  .setShadowWidthOfFoldBase(5, 80, 0.4f)
                  .setPixelsOfMesh(5)
-                 .enableAutoPageMode(true);//.setFoldEdgesShadowColor(0, 1, 1, 0);
+                 .enableAutoPageMode(true);
         setEGLContextClientVersion(2);
         //setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         //getHolder().setFormat(PixelFormat.RGBA_8888);

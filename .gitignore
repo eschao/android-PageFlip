@@ -44,6 +44,7 @@ captures/
 .idea/libraries
 .idea/misc.xml
 .idea/modules.xml
+.idea/vcs.xml
 .DS_Store
 /build
 /captures

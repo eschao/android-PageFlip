@@ -11,5 +11,4 @@ void main() {
     vec4 shadow = texture2D(u_shadow, shadowCoord);
     vec4 maskedTexture = vec4(mix(texture.rgb, u_maskColor.rgb, u_maskColor.a), 1.0);
     gl_FragColor = vec4(maskedTexture.rgb * (1.0 - shadow.a) + shadow.rgb, maskedTexture.a);
-    //gl_FragColor = vec4(texture.rgb + shadow.rgb * 0, 1.0);//texture.a);
 }

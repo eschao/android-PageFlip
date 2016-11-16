@@ -20,16 +20,20 @@ import android.content.Context;
 import static android.opengl.GLES20.glGetUniformLocation;
 
 /**
- * Vertex shader program for page fold back part
+ * FoldBack vertex shader program which is used to load:
+ * <ul>
+ *     <li>fold_back_fragment_shader.glsl</li>
+ *     <li>fold_back_vertex_shader.glsl</li>
+ * </ul>
  *
  * @author eschao
  */
 
 public class FoldBackVertexProgram extends VertexProgram {
 
-    final static String VAR_TEXTRUE_OFFSET      = "u_texXOffset";
-    final static String VAR_MASK_COLOR          = "u_maskColor";
-    final static String VAR_SHADOW_TEXTURE      = "u_shadow";
+    final static String VAR_TEXTRUE_OFFSET = "u_texXOffset";
+    final static String VAR_MASK_COLOR     = "u_maskColor";
+    final static String VAR_SHADOW_TEXTURE = "u_shadow";
 
     int hShadow;
     int hMaskColor;
@@ -45,9 +49,10 @@ public class FoldBackVertexProgram extends VertexProgram {
 
     /**
      * Initiate shader program
+     *
      * @param context Android app context
      * @return self
-     * @throws PageFlipException If fail to read and compile shader scripts
+     * @throws PageFlipException if fail to read and compile shader scripts
      */
     public FoldBackVertexProgram init(Context context) throws
                                                        PageFlipException {

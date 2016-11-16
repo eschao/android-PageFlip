@@ -206,7 +206,7 @@ public class SinglePageRender extends PageRender {
      *
      * @return true if it can flip forward
      */
-    public boolean canForwardFlip() {
+    public boolean canFlipForward() {
         if (mPageNo >= MAX_PAGES) {
             Toast.makeText(mContext,
                            "This is the last page!",
@@ -224,7 +224,7 @@ public class SinglePageRender extends PageRender {
      *
      * @return true if it can flip backward
      */
-    public boolean canBackwardFlip() {
+    public boolean canFlipBackward() {
         if (mPageNo > 1) {
             mPageFlip.getFirstPage().setSecondTextureWithFirst();
             return true;

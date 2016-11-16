@@ -234,7 +234,7 @@ public class DoublePagesRender extends PageRender {
      *
      * @return true if it can flip forward
      */
-    public boolean canForwardFlip() {
+    public boolean canFlipForward() {
         final Page page = mPageFlip.getFirstPage();
         // current page is left page
         if (page.isLeftPage()) {
@@ -269,7 +269,7 @@ public class DoublePagesRender extends PageRender {
      *
      * @return always false
      */
-    public boolean canBackwardFlip() {
+    public boolean canFlipBackward() {
         return false;
     }
 }

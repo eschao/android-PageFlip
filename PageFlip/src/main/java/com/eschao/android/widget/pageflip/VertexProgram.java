@@ -15,7 +15,6 @@
  */
 package com.eschao.android.widget.pageflip;
 
-
 import android.content.Context;
 import android.opengl.Matrix;
 
@@ -23,8 +22,11 @@ import static android.opengl.GLES20.glGetAttribLocation;
 import static android.opengl.GLES20.glGetUniformLocation;
 
 /**
- * Vertex shader program which is used to load <bottom>vertex_shader.glsl</bottom> and
- * <bottom>fragment_shader.glsl</bottom> from resources
+ * Vertex shader program which is used to load:
+ * <ul>
+ *     <li>vertex_shader.glsl</li>
+ *     <li>fragment_shader.glsl</li>
+ * </ul>
  *
  * @author eschao
  */
@@ -41,11 +43,11 @@ class VertexProgram extends GLProgram {
     // universal model-view-project matrix
     final static float[] MVPMatrix = new float[16];
 
-    // variable handles after compiled & linked GLSL scripts
-    protected int hMVPMatrix;
-    protected int hVertexPosition;
-    protected int hTextureCoord;
-    protected int hTexture;
+    // variable handles after compiled & linked shader scripts
+    int hMVPMatrix;
+    int hVertexPosition;
+    int hTextureCoord;
+    int hTexture;
 
     public VertexProgram() {
         super();
@@ -58,7 +60,7 @@ class VertexProgram extends GLProgram {
     }
 
     /**
-     * Initiate vertex GLSL program
+     * Initiate vertex shader program
      *
      * @param context Android app context
      * @return self object
@@ -70,7 +72,7 @@ class VertexProgram extends GLProgram {
     }
 
     /**
-     * Get variable handles after linked GLSL program
+     * Get variable handles after linked shader program
      */
     protected void getVarsLocation() {
         if (hProgram != 0) {
@@ -82,7 +84,7 @@ class VertexProgram extends GLProgram {
     }
 
     /**
-     * Delete GLSL shader and program
+     * Delete shader and program handlers
      */
     public void delete() {
         super.delete();

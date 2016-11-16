@@ -15,6 +15,8 @@
  */
 package com.eschao.android.widget.pageflip;
 
+import android.util.Log;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -31,6 +33,8 @@ import static android.opengl.GLES20.glVertexAttribPointer;
  */
 
 class Vertexes {
+
+    private static final String TAG = "Vertexes";
 
     // how many vertexes in vertex float buffer will be drawn on screen
     int mVertexesSize;
@@ -49,7 +53,7 @@ class Vertexes {
     FloatBuffer mTextureCoordsBuf;
 
     // next index when add vertex to float array
-    protected int mNext;
+    int mNext;
 
 
     /**
@@ -68,7 +72,7 @@ class Vertexes {
     /**
      * Constructor with given vertex amount
      *
-     * @param capacity vertex amount
+     * @param capacity vertex max amount
      * @param sizeOfPerVex how many float data is used for a vertex
      */
     public Vertexes(int capacity, int sizeOfPerVex) {
@@ -76,7 +80,7 @@ class Vertexes {
     }
 
     /**
-     * Constructor with given vertex amount and texture
+     * Constructor with given vertex max amount and texture
      *
      * @param capacity vertex amount
      * @param sizeOfPerVex how many float data is used for a vertex
@@ -91,11 +95,15 @@ class Vertexes {
      *
      * @param capacity vertex amount
      * @param sizeOfPerVex how many float data is used for a vertex
-     * @param hasTexture if need texture buffer for texture coordinates
+     * @param hasTexture True if need texture buffer for texture coordinates
      * @return self
      */
     public Vertexes set(int capacity, int sizeOfPerVex, boolean hasTexture) {
-        assert (sizeOfPerVex > 0);
+        if (sizeOfPerVex < 2) {
+            Log.w(TAG, "sizeOfPerVex is invalid: " + sizeOfPerVex);
+            throw new IllegalArgumentException("sizeOfPerVex:" + sizeOfPerVex +
+                                               "is less than 2!");
+        }
 
         // reset all
         mNext = 0;
@@ -155,17 +163,15 @@ class Vertexes {
     }
 
 
+    /**
+     * Get float data with given index
+     *
+     * @param index float data position index
+     * @return float data
+     */
     public float getFloatAt(int index) {
         if (index >= 0 && index < mNext) {
             return mVertexes[index];
-        }
-
-        return 0;
-    }
-
-    public float getLastFloat() {
-        if (mNext > 0) {
-            return mVertexes[mNext - 1];
         }
 
         return 0;
@@ -196,7 +202,7 @@ class Vertexes {
      * @param x x value of vertex coordinate
      * @param y y value of vertex coordinate
      * @param z z value of vertex coordinate
-     * @param w width value which is normally used to pass other value to GLSL
+     * @param w width value which is normally used to pass other value to shader
      * @return self
      */
     public Vertexes setVertex(int i, float x, float y, float z, float w) {
@@ -268,7 +274,7 @@ class Vertexes {
      * @param x x value of vertex coordinate
      * @param y y value of vertex coordinate
      * @param z z value of vertex coordinate
-     * @param w width value which is normally used to pass other value to GLSL
+     * @param w width value which is normally used to pass other value to shader
      * @return self
      */
     public Vertexes addVertex(float x, float y, float z, float w) {
@@ -285,7 +291,7 @@ class Vertexes {
      * @param x x value of vertex coordinate
      * @param y y value of vertex coordinate
      * @param z z value of vertex coordinate
-     * @param w width value which is normally used to pass other value to GLSL
+     * @param w width value which is normally used to pass other value to shader
      * @param coordX x value of texture coordinate
      * @param coordY y value of texture coordinate
      * @return self
@@ -325,8 +331,11 @@ class Vertexes {
 
     /**
      * Put all data from float array to float buffer
+     * <p>
      * The offset is 0 and the length is determined by mNext which is increased
      * after calling {@link #addVertex}
+     * </p>
+     *
      * @return self
      */
     public Vertexes toFloatBuffer() {
@@ -344,8 +353,8 @@ class Vertexes {
      * Draw vertexes
      *
      * @param type openGL drawing type: TRIANGLE, STRIP, FAN
-     * @param hVertexPos vertex handle in GLSL program
-     * @param hTextureCoord texture handle in GLSL program
+     * @param hVertexPos vertex handle in shader program
+     * @param hTextureCoord texture handle in shader program
      */
     public void drawWith(int type, int hVertexPos, int hTextureCoord) {
         // pass vertex data
@@ -366,8 +375,8 @@ class Vertexes {
      * Draw vertexes with given offset and length
      *
      * @param type openGL drawing type: TRIANGLE, STRIP, FAN
-     * @param hVertexPos vertex handle in GLSL program
-     * @param hTextureCoord texture handle in GLSL program
+     * @param hVertexPos vertex handle in shader program
+     * @param hTextureCoord texture handle in shader program
      * @param offset vertex start offset in buffer
      * @param length vertex length to be drawn
      */

@@ -28,13 +28,14 @@ import static android.opengl.GLES20.glLinkProgram;
 import static android.opengl.GLES20.glUseProgram;
 
 /**
- * GLSL program is used to load, compile and link shader scripts
+ * GLSL program class is used to load, compile and link shader scripts
  *
  * @author eschao
  */
 
 public class GLProgram {
 
+    // invalid handle
     protected final int INVALID_HANDLE = -1;
 
     // GLSL program handle
@@ -59,10 +60,10 @@ public class GLProgram {
      * @param vertexResId vertex shader script id
      * @param fragmentResId fragment shader script id
      * @return self
-     * @throws PageFlipException If fail to read or compile GLSL scripts
+     * @throws PageFlipException if fail to read or compile shader scripts
      */
     public GLProgram init(Context context, int vertexResId, int fragmentResId)
-    throws PageFlipException {
+                                                    throws PageFlipException {
         // 1. init shader
         try {
             mVertex.compile(context, GL_VERTEX_SHADER, vertexResId);
@@ -79,7 +80,7 @@ public class GLProgram {
         if (hProgram == 0) {
             mVertex.delete();
             mFragment.delete();
-            throw new PageFlipException("Can'top create texture program");
+            throw new PageFlipException("Can't create texture program");
         }
 
         // 3. attach vertex and fragment shader
@@ -92,7 +93,7 @@ public class GLProgram {
         glGetProgramiv(hProgram, GL_LINK_STATUS, result, 0);
         if (result[0] == 0) {
             delete();
-            throw new PageFlipException("Can'top link program");
+            throw new PageFlipException("Can't link program");
         }
 
         // 5. get all variable handles defined in scripts
@@ -118,7 +119,8 @@ public class GLProgram {
 
     /**
      * Get program handle
-     * @return
+     *
+     * @return program handle
      */
     public int handle() {
         return hProgram;
@@ -126,7 +128,7 @@ public class GLProgram {
 
     /**
      * Subclass should implement it to get its own variable handles which are
-     * defined in its GLSL scripts
+     * defined in its shader scripts
      */
     protected void getVarsLocation() {
     }

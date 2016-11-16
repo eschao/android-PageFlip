@@ -21,14 +21,17 @@ import static android.opengl.GLES20.glGetAttribLocation;
 import static android.opengl.GLES20.glGetUniformLocation;
 
 /**
- * Shadow vertex GLSL program which is used to load <bottom>
- * shadow_vertex_sbader.glsl</bottom> and <bottom>shadow_fragment_shader.glsl</bottom>
- * from resources
+ * Shadow vertex shader program which is used to load:
+ * <ul>
+ *     <li>shadow_vertex_sbader.glsl</li>
+ *     <li>shadow_fragment_shader.glsl</li>
+ * </ul>
  *
  * @author eschao
  */
 public class ShadowVertexProgram extends GLProgram {
-    // variable names defined in GLSL scripts
+
+    // variable names defined in shader scripts
     final static String VAR_MVP_MATRIX  = "u_MVPMatrix";
     final static String VAR_VERTEX_Z    = "u_vexZ";
     final static String VAR_VERTEX_POS  = "a_vexPosition";
@@ -49,7 +52,7 @@ public class ShadowVertexProgram extends GLProgram {
     }
 
     /**
-     * Initiate GLSL program
+     * Initiate shader program
      *
      * @param context android context
      * @return self
@@ -65,7 +68,7 @@ public class ShadowVertexProgram extends GLProgram {
     }
 
     /**
-     * Get variable handles from linked GLSL program
+     * Get variable handles from linked shader program
      */
     protected void getVarsLocation() {
         if (hProgram != 0) {

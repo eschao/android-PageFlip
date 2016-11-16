@@ -27,7 +27,7 @@ import static android.opengl.GLES20.glUniform4f;
 import static android.opengl.GLES20.glUniformMatrix4fv;
 
 /**
- * Vertex buffer management for fold back part of page
+ * Vertex buffer management for back of fold page
  *
  * @author eschao
  */
@@ -35,8 +35,8 @@ final class FoldBackVertexes extends Vertexes {
 
     private final static String TAG = "FoldBackVertexes";
 
-    // mask alpha for page fold back
-    // mask color is in Page class since it is followed back of first bitmap
+    // mask alpha for back of fold page
+    // mask color is in Page class since it follows the back of first bitmap
     float mMaskAlpha;
 
     public FoldBackVertexes() {
@@ -65,7 +65,12 @@ final class FoldBackVertexes extends Vertexes {
      * @return self
      */
     public FoldBackVertexes setMaskAlpha(int alpha) {
-        mMaskAlpha = alpha / 255f;
+        if (alpha < 0 || alpha > 255) {
+            throw new IllegalArgumentException("Alpha: " + alpha + "is out of " +
+                                               "[0 .. 255]!");
+        }
+
+        mMaskAlpha = alpha / 255.0f;
         return this;
     }
 
@@ -76,10 +81,20 @@ final class FoldBackVertexes extends Vertexes {
      * @return self
      */
     public FoldBackVertexes setMaskAlpha(float alpha) {
+        if (alpha < 0 || alpha > 1) {
+            throw new IllegalArgumentException("Alpha: " + alpha + "is out of " +
+                                               "[0 .. 1]!");
+        }
+
         mMaskAlpha = alpha;
         return this;
     }
 
+    /**
+     * Put all data from float array to float buffer
+     *
+     * @return self
+     */
     public FoldBackVertexes toFloatBuffer() {
         // fix coordinate x of texture for shadow of fold back
         super.toFloatBuffer();
@@ -89,9 +104,9 @@ final class FoldBackVertexes extends Vertexes {
     /**
      * Draw fold back and shadow
      *
-     * @param program Fold back vertex program
-     * @param page The current page object
-     * @param hasSecondPage There has second page or not
+     * @param program fold back vertex program
+     * @param page the current operating page: First Page
+     * @param hasSecondPage there has second page or not
      * @param gradientShadowId gradient shadow id
      */
     public void draw(FoldBackVertexProgram program,
@@ -110,12 +125,13 @@ final class FoldBackVertexes extends Vertexes {
         glBindTexture(GL_TEXTURE_2D, gradientShadowId);
         glUniform1i(program.hShadow, 1);
 
-        // set x offset of texture coordinate, in single page mode, the value is
-        // set 0 to make the back texture is drawing inversely against the first
-        // texture since they are the same texture, but in double page mode,
-        // the back texture is different with the first texture, it is the next
-        // page and should be drawn in the same order with the first texture, so
-        // the value is set 1
+        // set x offset of texture coordinate. In single page mode, the value is
+        // set 0 to draw the back texture with x coordinate inversely against
+        // the first texture since they are using the same texture, but in
+        // double page mode, the back texture is different with the first one,
+        // it is the next page content texture and should be drawn in the same
+        // order with the first texture, so the value is set 1. Computing
+        // details, please see the shader script.
         glUniform1f(program.hTexXOffset, hasSecondPage ? 1.0f : 0);
 
         // set mask color and alpha

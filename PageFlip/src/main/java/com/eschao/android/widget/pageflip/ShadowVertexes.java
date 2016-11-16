@@ -37,7 +37,7 @@ import static android.opengl.GLES20.glVertexAttribPointer;
 /**
  * Shadow vertex which is used to store vertex data of fold shadow and draw
  * shadow with openGL
- * Every vertex has 4 float data which are:
+ * <p>Every vertex has 4 float data which are:</p>
  * <ul>
  *     <li>x coordinate</li>
  *     <li>y coordinate</li>
@@ -52,21 +52,29 @@ class ShadowVertexes {
     // how many vertexes in vertex float buffer will be drawn on screen
     int mVertexesSize;
 
-    // float array and float buffer for storing vertexes
+    // universal Z coordinate for all shadow vertex
+    // we will enable DEPTH_TEST while drawing fold shadow to avoid some drawing
+    // issue
     float vertexZ;
+
+    // float array and float buffer for storing vertexes
     float[] mVertexes;
     FloatBuffer mVertexesBuffer;
 
     // shadow color
     ShadowColor mColor;
 
-    // the backward index start position
+    // the start position of backward vertexes
     int mMaxBackward;
 
     // reserve space between backward and forward index
     // need to preserver space for fold top edge shadow when compute fold edge
-    // shadow since the top edge shadow will be computed later
-    int mSpaceOfFrontRear;
+    // shadow since the top edge shadow will be computed at last
+    //
+    // +--------------------+------------+--------------------+
+    // |   <-- mBackward    |  reserved  |    mForward -->    |
+    // +--------------------+------------+--------------------+
+    private int mSpaceOfFrontRear;
 
     // forward and backward index for adding vertex
     private int mBackward;
@@ -106,7 +114,7 @@ class ShadowVertexes {
     public ShadowVertexes set(int meshCount) {
         // every mesh need two vertexes:
         // (startX, startY , startColor, startAlpha)  and
-        // (endX, endY, endColor, endAlpha), that is why meshCount * 8
+        // (endX, endY, endColor, endAlpha), that is why it is meshCount * 8
         mMaxBackward = meshCount << 3;
 
         // double meshCount since fold shadow has two sides, for example:
@@ -134,8 +142,9 @@ class ShadowVertexes {
 
     /**
      * Reset index of float array before adding vertex to buffer
-     * There are two index: forward and backward, all of them will have to be
+     * <p>There are two index: forward and backward, all of them have to be
      * reset to middle position(exclude reserved space) before adding vertexes
+     * </p>
      */
     public void reset() {
         vertexZ = 0;
@@ -169,7 +178,7 @@ class ShadowVertexes {
 
     /**
      * Backward add vertex to float buffer
-     * Call {@link #reset()} before calling any add operations
+     * <p></p>Call {@link #reset()} before start calling any add operations</p>
      *
      * @param startX start x coordinate
      * @param startY start y coordinate
@@ -194,7 +203,7 @@ class ShadowVertexes {
 
     /**
      * Forward add vertex to float buffer
-     * Call {@link #reset()} before calling any add operations
+     * <p></p>Call {@link #reset()} before start calling any add operations</p>
      *
      * @param startX start x coordinate
      * @param startY start y coordinate
@@ -269,7 +278,7 @@ class ShadowVertexes {
 
             glUniform1f(program.hVertexZ, vertexZ);
 
-            // disable texture, depth test and enable blend
+            // disable texture, and enable blend
             glDisable(GL_TEXTURE_2D);
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

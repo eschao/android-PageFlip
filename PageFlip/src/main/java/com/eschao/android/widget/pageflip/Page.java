@@ -44,6 +44,35 @@ import static android.opengl.GLES20.glVertexAttribPointer;
 
 /**
  * Page class
+ * <pre>
+ * Page holds content textures and show them on screen. In single page mode, a
+ * page represents the whole screen area. But in double pages mode, there are
+ * two pages to depict the entire screen size, in the left part is called left
+ * page and the right part is called right page.
+ * Every page has the below properties:
+ * <ul>
+ *     <li>Page size: left/right/top/bottom and width/height</li>
+ *     <li>Holding 3 content textures for drawing:
+ *          <ul>
+ *              <li>The first texture: which is showing on screen when page is
+ *              stationary, we can relatively call it as the first 'Page' at
+ *              some extend</li>
+ *              <li>The second texture: normally it can be called the second
+ *              'Page' against the first texture. It will be appeared when page
+ *              is flipping or flip is over, in the later, the second texture
+ *              will eventually become the first one</li>
+ *              <li>The back texture: in single page mode, the back texture is
+ *              always same with the first texture, thus, the caller shouldn't
+ *              set it before drawing. But in double pages mode, it should be
+ *              set with a different texture and can be called the second 'Page'
+ *              , at this time, the second texture will be called the third
+ *              'Page' as like we're reading a book</li>
+ *              <li>Every texture should be set with a bitmap by outer called
+ *              </li>
+ *          </ul>
+ *     </li>
+ * </ul>
+ * </pre>
  *
  * @author eschao
  */
@@ -94,7 +123,7 @@ public class Page {
     int[] mTexIDs;
     // unused texture ids, will be deleted when next OpenGL drawing
     int[] mUnusedTexIDs;
-    // valid size of mUnusedTexIDs
+    // actual size of mUnusedTexIDs
     int mUnusedTexSize;
 
     /**
@@ -152,7 +181,7 @@ public class Page {
     }
 
     /**
-     * Is left page?
+     * Is the left page?
      * <p>Left page represents the left screen in double pages mode</p>
      *
      * @return true if current page is left page
@@ -162,7 +191,7 @@ public class Page {
     }
 
     /**
-     * Is right page?
+     * Is the right page?
      * <p>Right page represents the right screen in double pages mode</p>
      *
      * @return true if current page is right page
@@ -172,7 +201,7 @@ public class Page {
     }
 
     /**
-     * Gets page width
+     * Get page width
      *
      * @return page width
      */
@@ -187,21 +216,6 @@ public class Page {
      */
     public float height() {
         return height;
-    }
-
-    /**
-     * Get back texture ID
-     *
-     * @return back texture id, If it is not set, return the first texture id
-     */
-    public int getBackTextureID() {
-        // In single page mode, the back texture is same with the first texture
-        if (mTexIDs[BACK_TEXTURE_ID] == INVALID_TEXTURE_ID) {
-            return mTexIDs[FIRST_TEXTURE_ID];
-        }
-        else {
-            return mTexIDs[BACK_TEXTURE_ID];
-        }
     }
 
     /**
@@ -247,7 +261,7 @@ public class Page {
      * <p>Manually call this function to set the first texture with the second
      * one after page forward flipped over in single page mode.</p>
      *
-     * @return Page object
+     * @return self
      */
     public Page setFirstTextureWithSecond() {
         if (mTexIDs[FIRST_TEXTURE_ID] > INVALID_TEXTURE_ID) {
@@ -264,7 +278,7 @@ public class Page {
      * <p>Manually call this function to set the second texture with the first
      * one when page is backward flipping in single page mode.</p>
      *
-     * @return Page object
+     * @return self
      */
     public Page setSecondTextureWithFirst() {
         if (mTexIDs[SECOND_TEXTURE_ID] > INVALID_TEXTURE_ID) {
@@ -282,10 +296,10 @@ public class Page {
      * <p>Call this function when page is flipped over in double pages mode</p>
      *
      * @param page another page
-     * @return Current page object
+     * @return self
      */
     public Page swapTexturesWithPage(Page page) {
-        // second page: second -> first
+        // [second page]: second -> first
         mUnusedTexIDs[mUnusedTexSize++] = mTexIDs[SECOND_TEXTURE_ID];
         mTexIDs[SECOND_TEXTURE_ID] = mTexIDs[FIRST_TEXTURE_ID];
 
@@ -304,10 +318,25 @@ public class Page {
     }
 
     /**
+     * Get back texture ID
+     *
+     * @return back texture id, If it is not set, return the first texture id
+     */
+    int getBackTextureID() {
+        // In single page mode, the back texture is same with the first texture
+        if (mTexIDs[BACK_TEXTURE_ID] == INVALID_TEXTURE_ID) {
+            return mTexIDs[FIRST_TEXTURE_ID];
+        }
+        else {
+            return mTexIDs[BACK_TEXTURE_ID];
+        }
+    }
+
+    /**
      * Is given point(x, y) in page?
      *
-     * @param x Point x coordinate
-     * @param y Point y coordinate
+     * @param x x coordinate
+     * @param y y coordinate
      * @return true if the point is in page
      */
     boolean contains(float x, float y) {
@@ -319,8 +348,8 @@ public class Page {
     /**
      * Is given x coordinate in specified page range?
      *
-     * @param x Point x coordinate
-     * @param ratio Rang ratio against page width, start from OriginP.x
+     * @param x x coordinate
+     * @param ratio range ratio based on page width, start from OriginP.x
      * @return True if x is in specified range
      */
     boolean isXInRange(float x, float ratio) {
@@ -331,8 +360,8 @@ public class Page {
     /**
      * Is given x coordinate out of page width?
      *
-     * @param x Point x coordinate
-     * @return True if given x is not in page
+     * @param x x coordinate
+     * @return true if given x is not in page
      */
     boolean isXOutOfPage(float x) {
         return originP.x < 0 ? x >= diagonalP.x : x <= diagonalP.x;
@@ -341,9 +370,9 @@ public class Page {
     /**
      * Set original point and diagonal point
      *
-     * @param hasSecondPage Has the second page in double pages mode?
-     * @param dy Relative finger movement on Y axis
-     * @return Current page object
+     * @param hasSecondPage has the second page in double pages mode?
+     * @param dy relative finger movement on Y axis
+     * @return self
      */
     Page setOriginPoint(boolean hasSecondPage, float dy) {
         if (hasSecondPage && left < 0) {
@@ -375,7 +404,7 @@ public class Page {
     /**
      * Compute X coordinate of texture
      *
-     * @param x X coordinate
+     * @param x x coordinate
      * @return x coordinate of texture, value is in [0 .. 1]
      */
     public float textureX(float x) {
@@ -385,8 +414,8 @@ public class Page {
     /**
      * Compute Y coordinate of texture
      *
-     * @param y Y coordinate
-     * @return Y coordinate of texture, value is in [0 .. 1]
+     * @param y y coordinate
+     * @return y coordinate of texture, value is in [0 .. 1]
      */
     public float textureY(float y) {
         return (top - y) / texHeight;
@@ -445,7 +474,7 @@ public class Page {
      */
     public void setBackTexture(Bitmap b) {
         if (b == null) {
-            // means back texture is same with the first texture
+            // back texture is same with the first texture
             if (mTexIDs[BACK_TEXTURE_ID] != INVALID_TEXTURE_ID) {
                 mUnusedTexIDs[mUnusedTexSize++] = mTexIDs[BACK_TEXTURE_ID];
             }
@@ -474,14 +503,14 @@ public class Page {
      */
     public void drawFrontPage(VertexProgram program,
                               Vertexes vertexesOfFrontPage) {
-        // 1. draw front unfold part and curled part
+        // 1. draw unfold part and curled part with the first texture
         glBindTexture(GL_TEXTURE_2D, mTexIDs[FIRST_TEXTURE_ID]);
         glUniform1i(program.hTexture, 0);
         vertexesOfFrontPage.drawWith(GL_TRIANGLE_STRIP,
                                      program.hVertexPosition,
                                      program.hTextureCoord);
 
-        // 2. draw the next page part with the second texture
+        // 2. draw the back part with the second texture
         glVertexAttribPointer(program.hVertexPosition, 3, GL_FLOAT, false, 0,
                               mVertexes.mVertexesBuf);
         glEnableVertexAttribArray(program.hVertexPosition);
@@ -498,7 +527,7 @@ public class Page {
      * Draw full page
      *
      * @param program GL shader program
-     * @param isFirst Use the first or second texture to draw
+     * @param isFirst use the first or second texture to draw
      */
     public void drawFullPage(VertexProgram program, boolean isFirst) {
         if (isFirst) {
@@ -540,9 +569,9 @@ public class Page {
                                           .order(ByteOrder.nativeOrder())
                                           .asFloatBuffer();
 
-        // vertexes for unfold page when page is flipping, it includes two parts
-        // one is drawing with the first texture, another is drawing with the
-        // second texture
+        // vertexes buffer for unfold page when page is flipping, it includes
+        // two parts: one is drawing with the first texture, another is drawing
+        // with the second texture
         mVertexes = new Vertexes(6, 3);
     }
 
@@ -562,13 +591,13 @@ public class Page {
      *  2) Origin point: 3
      *  3) Diagonal point: 1
      *  4) xFoldP1.y: fY, xFoldP2.x: fX
-     *  5) First part drawing with the first texture(GL_TRIANGLE_STRIP):
+     *  5) Drawing front part with the first texture(GL_TRIANGLE_STRIP):
      *      fX -> fY -> 4 -> 1
-     *  6) Second part drawing with the second texture(GL_TRIANGLE_STRIP):
+     *  6) Drawing back part with the second texture(GL_TRIANGLE_STRIP):
      *      3 -> 2 -> fX -> fY
      * </pre>
-     * @param frontVertexes Vertexes for drawing font part of page
-     * @param xFoldP1 Fold point on X axis
+     * @param frontVertexes vertexes for drawing font part of page
+     * @param xFoldP1 fold point on X axis
      */
     public void buildVertexesOfPageWhenVertical(Vertexes frontVertexes,
                                                 PointF xFoldP1) {
@@ -620,7 +649,7 @@ public class Page {
         texCoords[j] = diagonalP.tY;
 
         // copy vertexes of unfold front part into front vertexes buffer so that
-        // it can be draw at a time
+        // the front part can be draw at a time
         if (start > -1) {
             for (int k = 6, m = 4; k < 18; k += 3, m += 2) {
                 frontVertexes.addVertex(vertexes[k], vertexes[k+1], 0,
@@ -633,7 +662,7 @@ public class Page {
     }
 
     /**
-     * Build vertexes of page when page is flipping aslope
+     * Build vertexes of page when page flip is slope
      * <pre>
      *   There are 3 cases need to be considered
      *           <---- flip
@@ -653,22 +682,23 @@ public class Page {
      *  2) Origin point: 3
      *  3) Diagonal point: 1
      *  4) xFoldP1.x: xFx, yFoldP1.y: yFy
-     *  6) Case A drawing (TRIANGLE_STRIP):
+     *  6) Drawing case A (TRIANGLE_STRIP):
      *      Second: 3 -> yFy -> xFx
      *      First : yFy -> xFx -> 2 -> 4 -> 1
-     *  7) Case B drawing (TRIANGLE_STRIP):
+     *  7) Drawing case B (TRIANGLE_STRIP):
      *      Second: 3 -> 2 -> xFx -> yFy
      *      First : xFx -> yFy -> 4 -> 1
-     *  8) Case C drawing (TRIANGLE_STRIP):
+     *  8) Drawing case C (TRIANGLE_STRIP):
      *      Second: 3 -> 2 -> 4 -> yFy -> xFx
      *      First : yFy -> xFx -> 1
-     *  9) If yFy is out of page, that means xFx is also out and the drawing is
+     *  9) If yFy is out of page, that means xFx is also out and it will
      *  degenerate to a normal full page drawing: 3 -> 2 -> 4 -> 1
      * </pre>
-     * @param frontVertexes Vertexes for drawing front part of page
-     * @param xFoldP1 Fold point on X axis
-     * @param yFoldP1 Fold point on Y axis
-     * @param kValue Tan value of page curl angle
+     *
+     * @param frontVertexes vertexes for drawing front part of page
+     * @param xFoldP1 fold point on X axis
+     * @param yFoldP1 fold point on Y axis
+     * @param kValue tan value of page curling angle
      */
     public void buildVertexesOfPageWhenSlop(Vertexes frontVertexes,
                                             PointF xFoldP1,
@@ -692,6 +722,7 @@ public class Page {
         float xX = xFoldP1.x;
         float xY = originP.y;
 
+        // compute FoldY point position in vertexes array
         if (yFoldP1.y <= halfH && yFoldP1.y >= -halfH) {
             iy = 3;
             idy = 9;
@@ -705,6 +736,7 @@ public class Page {
             idy = 3;
         }
 
+        // compute XFold point position in vertexes array
         if (isXOutOfPage(xFoldP1.x)) {
             if (iy > -1) {
                 xY = originP.y - (xFoldP1.x - diagonalP.x) / kValue;
@@ -718,6 +750,7 @@ public class Page {
             iox = 12;
         }
 
+        // add origin point in the first index
         vertexes[0] = originP.x;
         vertexes[1] = originP.y;
         vertexes[2] = z;
@@ -767,6 +800,7 @@ public class Page {
             j += 2;
         }
 
+        // add the diagonal point in the tail
         vertexes[i++] = diagonalP.x;
         vertexes[i++] = diagonalP.y;
         vertexes[i++] = z;
@@ -841,8 +875,8 @@ public class Page {
     }
 
     /**
-     * GPoint includes (x,y) in OpenGL coordinate system and corresponding
-     * texture coordinates (tX, tY)
+     * GPoint includes (x,y) in OpenGL coordinate system and its texture
+     * coordinates (tX, tY)
      */
     static class GPoint {
         float x;
