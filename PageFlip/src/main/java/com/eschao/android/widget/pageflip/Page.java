@@ -700,10 +700,10 @@ public class Page {
      * @param yFoldP1 fold point on Y axis
      * @param kValue tan value of page curling angle
      */
-    public void buildVertexesOfPageWhenSlop(Vertexes frontVertexes,
-                                            PointF xFoldP1,
-                                            PointF yFoldP1,
-                                            float kValue) {
+    public void buildVertexesOfPageWhenSlope(Vertexes frontVertexes,
+                                             PointF xFoldP1,
+                                             PointF yFoldP1,
+                                             float kValue) {
         mVertexes.mVertexesSize = 0;
         final float[] vertexes = mVertexes.mVertexes;
         final float[] texCoords = mVertexes.mTextureCoords;

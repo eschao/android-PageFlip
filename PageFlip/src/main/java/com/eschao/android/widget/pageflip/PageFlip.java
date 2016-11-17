@@ -162,23 +162,26 @@ public class PageFlip {
     // X <--------+ originP
     //
     // A is angle between X axis and line from mTouchP to originP
-    // mStartAngle and mEndAngle is range degree of A
+    // the max curling angle between line from touchP to originP and X axis
     private float mMaxT2OAngleTan;
+    // another max curling angle when finger moving cause the originP change
+    // from (x, y) to (x, -y) which means mirror based on Y axis.
     private float mMaxT2DAngleTan;
-    // the tan(A) value
+    // the tan value of current curling angle
+    // mKValue = (touchP.y - originP.y) / (touchP.x - originP.x)
     private float mKValue;
     // the length of line from mTouchP to originP
     private float mLenOfTouchOrigin;
     // the cylinder radius
     private float mR;
-    // the perimeter ratio of semi-cylinder against mLenOfTouchOrigin;
+    // the perimeter ratio of semi-cylinder based on mLenOfTouchOrigin;
     private float mSemiPerimeterRatio;
-
-    // Mesh vertexes count
+    // Mesh count
     private int mMeshCount;
 
-    // width of fold back edges shadow and fold front base shadow
+    // edges shadow width of back of fold page
     private ShadowWidth mFoldBackEdgesShadowWidth;
+    // base shadow width of front of fold page
     private ShadowWidth mFoldFrontBaseShadowWidth;
 
     // fold page and shadow vertexes
@@ -192,15 +195,18 @@ public class PageFlip {
     private FoldBackVertexProgram mFoldBackVertexProgram;
     private ShadowVertexProgram mShadowVertexProgram;
 
-    // is vertically curling page
+    // is vertical page flip
     private boolean mIsVertical;
     private PageFlipState mFlipState;
 
-    // use for page turning animation
+    // use for flip animation
     private Scroller mScroller;
     private Context mContext;
 
     // pages and page mode
+    // in single page mode, there is only one page in the index 0
+    // in double pages mode, there are two pages, the first one is always active
+    // page which is receiving finger events, for example: finger down/move/up
     private Page mPages[];
     private int mPageMode;
 
@@ -270,14 +276,14 @@ public class PageFlip {
     /**
      * Enable/disable page mode
      * <pre>
-     * Default is single page mode which means there is only one page
-     * whatever the screen is portrait or landscape. If set mode with auto page,
-     * it will automatically detect screen mode to use single or double pages to
-     * render the whole screen.
+     * The default value is single page mode, which means there is only one page
+     * no matter what the screen is portrait or landscape. If set mode with auto
+     * page, it will automatically detect screen mode and choose single or
+     * double pages to render the whole screen.
      * </pre>
      *
-     * @param isAuto True if set mode with auto page
-     * @return self object
+     * @param isAuto true if set mode with auto page
+     * @return self
      */
     public PageFlip enableAutoPageMode(boolean isAuto) {
         mPageMode = isAuto ? AUTO_PAGE_MODE : SINGLE_PAGE_MODE;
@@ -292,8 +298,8 @@ public class PageFlip {
      *  page with finger click.
      * </pre>
      *
-     * @param enable True if enable it
-     * @return self object
+     * @param enable true if enable it
+     * @return self
      */
     public PageFlip enableClickToFlip(boolean enable) {
         mIsClickToFlip = enable;
@@ -303,11 +309,11 @@ public class PageFlip {
     /**
      * Set listener for page flip
      * <pre>
-     * Set a page flip listener which will determine if page can flip forward or
+     * Set a page flip listener to determine if page can flip forward or
      * backward
      * </pre>
      *
-     * @param listener A listener for page flip
+     * @param listener a listener for page flip
      * @return
      */
     public PageFlip setListener(OnPageFlipListener listener) {
@@ -320,7 +326,7 @@ public class PageFlip {
      * <p>The default value is 10 pixels for each mesh</p>
      *
      * @param pixelsOfMesh pixel amount of each mesh
-     * @return self object
+     * @return self
      */
     public PageFlip setPixelsOfMesh(int pixelsOfMesh) {
         mPixelsOfMesh = pixelsOfMesh > 0 ? pixelsOfMesh :
@@ -338,22 +344,25 @@ public class PageFlip {
      * value is 0.8
      * </pre>
      *
-     * @param ratio Ratio of line length from touch point to original point. Its
+     * @param ratio ratio of line length from touch point to original point. Its
      *              value is (0..1]
-     * @return self object
+     * @return self
      */
     public PageFlip setSemiPerimeterRatio(float ratio) {
-        assert(ratio > 0 && ratio < 1);
+        if (ratio <= 0 || ratio > 1) {
+           throw new IllegalArgumentException("Invalid ratio value: " + ratio);
+        }
+
         mSemiPerimeterRatio = ratio;
         return this;
     }
 
     /**
-     * Set mask alpha for back part of fold page
+     * Set mask alpha for back of fold page
      * <pre>Mask alpha will be invalid in double pages</pre>
      *
-     * @param alpha Alpha value is in [0..255]
-     * @return self object
+     * @param alpha alpha value is in [0..255]
+     * @return self
      */
     public PageFlip setMaskAlphaOfFold(int alpha) {
         mFoldBackVertexes.setMaskAlpha(alpha);
@@ -363,11 +372,11 @@ public class PageFlip {
     /**
      * Sets edge shadow color of fold page
      *
-     * @param startColor Shadow start color: [0..1]
-     * @param startAlpha Shadow start alpha: [0..1]
-     * @param endColor Shadow end color: [0..1]
-     * @param endAlpha Shadow end alpha: [0..1]
-     * @return self object
+     * @param startColor shadow start color: [0..1]
+     * @param startAlpha shadow start alpha: [0..1]
+     * @param endColor shadow end color: [0..1]
+     * @param endAlpha shadow end alpha: [0..1]
+     * @return self
      */
     public PageFlip setShadowColorOfFoldEdges(float startColor,
                                               float startAlpha,
@@ -381,11 +390,11 @@ public class PageFlip {
     /**
      * Sets base shadow color of fold page
      *
-     * @param startColor Shadow start color: [0..1]
-     * @param startAlpha Shadow start alpha: [0..1]
-     * @param endColor Shadow end color: [0..1]
-     * @param endAlpha Shadow end alpha: [0..1]
-     * @return self object
+     * @param startColor shadow start color: [0..1]
+     * @param startAlpha shadow start alpha: [0..1]
+     * @param endColor shadow end color: [0..1]
+     * @param endAlpha shadow end alpha: [0..1]
+     * @return self
      */
     public PageFlip setShadowColorOfFoldBase(float startColor,
                                              float startAlpha,
@@ -399,10 +408,10 @@ public class PageFlip {
     /**
      * Set shadow width of fold edges
      *
-     * @param min Minimal width
-     * @param max Maximum width
-     * @param ratio Width ratio fo fold cylinder radius. It is in (0..1)
-     * @return self object
+     * @param min minimal width
+     * @param max maximum width
+     * @param ratio width ratio based on fold cylinder radius. It is in (0..1)
+     * @return self
      */
     public PageFlip setShadowWidthOfFoldEdges(float min,
                                               float max,
@@ -414,10 +423,10 @@ public class PageFlip {
     /**
      * Set shadow width of fold base
      *
-     * @param min Minimal width
-     * @param max Maximum width
-     * @param ratio Width ratio fo fold cylinder radius. It is in (0..1)
-     * @return self object
+     * @param min minimal width
+     * @param max maximum width
+     * @param ratio width ratio based on fold cylinder radius. It is in (0..1)
+     * @return self
      */
     public PageFlip setShadowWidthOfFoldBase(float min,
                                              float max,
@@ -429,7 +438,7 @@ public class PageFlip {
     /**
      * Get page flip state
      *
-     * @return Page flip state
+     * @return page flip state
      */
     public PageFlipState getFlipState() {
         return mFlipState;
@@ -438,11 +447,11 @@ public class PageFlip {
     /**
      * Handle surface creation event
      *
-     * @throws PageFlipException If failed to compile and link OpenGL shader
+     * @throws PageFlipException if failed to compile and link OpenGL shader
      */
     public void onSurfaceCreated() throws PageFlipException {
         glClearColor(0, 0, 0, 1f);
-        glClearDepthf(1000.0f);
+        glClearDepthf(1.0f);
         glEnable(GL_DEPTH_TEST);
 
         try {
@@ -465,9 +474,9 @@ public class PageFlip {
     /**
      * Handle surface changing event
      *
-     * @param width Surface width
-     * @param height Surface height
-     * @throws PageFlipException If failed to compile and link OpenGL shader
+     * @param width surface width
+     * @param height surface height
+     * @throws PageFlipException if failed to compile and link OpenGL shader
      */
     public void onSurfaceChanged(int width, int height) throws
                                                         PageFlipException {
@@ -541,7 +550,7 @@ public class PageFlip {
      *
      * @param touchX x of finger moving point
      * @param touchY y of finger moving point
-     * @return True if moving will trigger to draw a new frame for page flip,
+     * @return true if moving will trigger to draw a new frame for page flip,
      *         False means the movement should be ignored.
      */
 	public boolean onFingerMove(float touchX, float touchY) {
@@ -676,7 +685,7 @@ public class PageFlip {
      * @param touchX x of finger moving point
      * @param touchY y of finger moving point
      * @param duration millisecond for page flip animation
-     * @return True if animation is started or animation is not triggered
+     * @return true if animation is started or animation is not triggered
      */
     public boolean onFingerUp(float touchX, float touchY, int duration) {
         touchX  = mViewRect.toOpenGLX(touchX);
@@ -691,7 +700,7 @@ public class PageFlip {
 
         // forward flipping
         if (mFlipState == PageFlipState.FORWARD_FLIP) {
-            // can'top going forward, restore current page
+            // can't going forward, restore current page
             if (page.isXInRange(touchX, 0.4f)) {
                 end.x = (int)originP.x;
                 mFlipState = PageFlipState.RESTORE_FLIP;
@@ -738,9 +747,9 @@ public class PageFlip {
     /**
      * Check finger point to see if it can trigger a flip animation
      *
-     * @param touchX X of finger point
-     * @param touchY Y of finger point
-     * @return True if the point can trigger a flip animation
+     * @param touchX x of finger point
+     * @param touchY y of finger point
+     * @return true if the point can trigger a flip animation
      */
     public boolean canAnimate(float touchX, float touchY) {
         return (mFlipState == PageFlipState.FORWARD_FLIP &&
@@ -751,9 +760,9 @@ public class PageFlip {
     /**
      * Compute scroller points for animating
      *
-     * @param x X of clicking point
-     * @param start Start points of scroller will be set
-     * @param end End points of scroller will be set
+     * @param x x of clicking point
+     * @param start start point of scroller will be set
+     * @param end end point of scroller will be set
      */
     private void computeScrollPointsForClickingFlip(float x,
                                                     Point start,
@@ -817,7 +826,7 @@ public class PageFlip {
     /**
      * Compute animating and check if it can continue
      *
-     * @return True Animating is continue or it is stopped
+     * @return true animating is continue or it is stopped
      */
     public boolean animating() {
         final Page page = mPages[FIRST_PAGE];
@@ -941,7 +950,7 @@ public class PageFlip {
     /**
      * Is animation stated?
      *
-     * @return True if flip is started
+     * @return true if flip is started
      */
     public boolean isStartedFlip() {
         return mFlipState == PageFlipState.BACKWARD_FLIP ||
@@ -952,7 +961,7 @@ public class PageFlip {
     /**
      * The moving is ended?
      *
-     * @return True if flip is ended
+     * @return true if flip is ended
      */
     public boolean isEndedFlip() {
     	return mFlipState == PageFlipState.END_FLIP ||
@@ -966,7 +975,7 @@ public class PageFlip {
      * First page is currently operating page which means it is the page user
      * finger is clicking or moving
      *
-     * @return Flip state, See {@link PageFlipState}
+     * @return flip state, See {@link PageFlipState}
      */
     public Page getFirstPage() {
         return mPages[FIRST_PAGE];
@@ -974,9 +983,11 @@ public class PageFlip {
 
     /**
      * Get the second page
+     * <pre>
      * Second page is only valid in double page mode, if it is null, that means
      * there is only one page for whole screen whatever the screen is portrait
      * or landscape
+     * </pre>
      *
      * @return the second page, null if no second page
      */
@@ -984,6 +995,9 @@ public class PageFlip {
         return mPages[SECOND_PAGE];
     }
 
+    /**
+     * Delete unused textures
+     */
     public void deleteUnusedTextures() {
         mPages[FIRST_PAGE].deleteUnusedTextures();
         if (mPages[SECOND_PAGE] != null) {
@@ -1007,7 +1021,7 @@ public class PageFlip {
                                mGradientShadowTextureID);
 
 
-        // 2. draw unfold page and fold front parts
+        // 2. draw unfold page and fold front part
         glUseProgram(mVertexProgram.hProgram);
         glActiveTexture(GL_TEXTURE0);
         glUniformMatrix4fv(mVertexProgram.hMVPMatrix, 1, false,
@@ -1018,7 +1032,7 @@ public class PageFlip {
             mPages[SECOND_PAGE].drawFullPage(mVertexProgram, true);
         }
 
-        // 3. draw edge and base shadow of fold part
+        // 3. draw edge and base shadow of fold parts
         glUseProgram(mShadowVertexProgram.hProgram);
         mFoldFrontBaseShadow.draw(mShadowVertexProgram);
         mFoldBackEdgesShadow.draw(mShadowVertexProgram);
@@ -1050,20 +1064,20 @@ public class PageFlip {
         // compute max mesh count
         int maxMeshCount = (int)mViewRect.minOfWH() / mPixelsOfMesh;
 
-        // make sure the vertex count is odd number
+        // make sure the vertex count is even number
         if (maxMeshCount % 2 != 0) {
             maxMeshCount++;
         }
 
         // init vertexes buffers
         mFoldBackVertexes.set(maxMeshCount + 2);
-        mFoldFrontVertexes.set(maxMeshCount + 2, 3, true);
+        mFoldFrontVertexes.set(maxMeshCount + 8, 3, true);
         mFoldBackEdgesShadow.set(maxMeshCount + 2);
         mFoldFrontBaseShadow.set(maxMeshCount + 2);
     }
 
     /**
-     * Create gradient shadow texture for back of fold page
+     * Create gradient shadow texture for lighting effect
      */
     private void createGradientShadowTexture() {
         int textureIDs[] = new int[1];
@@ -1144,8 +1158,7 @@ public class PageFlip {
         mFoldBackVertexes.reset();
 
         for (int i = 0; i <= count; ++i, x -= stepX) {
-            // calc radian of x point, right is radius of cylinder and also
-            // 1 radian
+            // compute radian of x point
             float x2t = x - mXFoldP1.x;
             float radius = x2t / mR;
             float sinR = (float)Math.sin(radius);
@@ -1153,7 +1166,7 @@ public class PageFlip {
             float fx = mXFoldP1.x + mR * sinR;
             float fz = (float) (mR * (1 - Math.cos(radius)));
 
-            // calc vertex when it is curled
+            // compute vertex when it is curled
             mFoldBackVertexes.addVertex(fx, dY, fz, sinR, coordX, cDY)
                              .addVertex(fx, oY, fz, sinR, coordX, cOY);
         }
@@ -1226,19 +1239,35 @@ public class PageFlip {
 
     /**
      * Compute back vertex and edge shadow vertex of fold page
+     * <pre>
+     * In 2D coordinate system, for every vertex on fold page, we will follow
+     * the below steps to compute its 3D point (x,y,z) on curled page(cylinder):
+     * 1. Deem originP as (0, 0) to simplify the next computing steps
+     * 2. translate point(x, y) to new coordinate system (originP is (0, 0))
+     * 3. rotate point(x, y) with curling angle A in clockwise
+     * 4. compute 3d point (x, y, z) for 2d point(x, y), at this time, the
+     *    cylinder is vertical in new coordinate system which will help us
+     *    compute point
+     * 5. rotate 3d point (x, y, z) with -A to restore
+     * 6. translate 3d point (x, y, z) to original coordinate system
      *
-     * @param isY Is vertex for x point on x axis or y point on y axis?
-     * @param x0 X of point on axis
-     * @param y0 Y of point on axis
-     * @param sx0 X of edge shadow point
-     * @param sy0 Y of edge shadow point
-     * @param tX X of xFoldP1 point in rotated coordinate syste
-     * @param sinA Sin value of page curling angle
-     * @param cosA Cos value of page curling angel
-     * @param coordX X of texture coordinate
-     * @param coordY Y of texture coordinate
-     * @param oX X of originate point
-     * @param oY Y of originate point
+     * For point of edge shadow, the most computing steps are same but:
+     * 1. shadow point is following the page point except different x coordinate
+     * 2. shadow point has same z coordinate with the page point
+     * </pre>
+     *
+     * @param isY is vertex for x point on x axis or y point on y axis?
+     * @param x0 x of point on axis
+     * @param y0 y of point on axis
+     * @param sx0 x of edge shadow point
+     * @param sy0 y of edge shadow point
+     * @param tX x of xFoldP1 point in rotated coordinate system
+     * @param sinA sin value of page curling angle
+     * @param cosA cos value of page curling angel
+     * @param coordX x of texture coordinate
+     * @param coordY y of texture coordinate
+     * @param oX x of originate point
+     * @param oY y of originate point
      */
     private void computeBackVertex(boolean isY, float x0, float y0, float sx0,
                                    float sy0, float tX, float sinA, float cosA,
@@ -1273,16 +1302,20 @@ public class PageFlip {
 
     /**
      * Compute back vertex of fold page
+     * <pre>
+     * Almost same with another computeBackVertex function except expunging the
+     * shadow point part
+     * </pre>
      *
-     * @param x0 X of point on axis
-     * @param y0 Y of point on axis
-     * @param tX X of xFoldP1 point in rotated coordinate system
-     * @param sinA Sin value of page curling angle
-     * @param cosA Cos value of page curling angel
-     * @param coordX X of texture coordinate
-     * @param coordY Y of texture coordinate
-     * @param oX X of originate point
-     * @param oY Y of originate point
+     * @param x0 x of point on axis
+     * @param y0 y of point on axis
+     * @param tX x of xFoldP1 point in rotated coordinate system
+     * @param sinA sin value of page curling angle
+     * @param cosA cos value of page curling angel
+     * @param coordX x of texture coordinate
+     * @param coordY y of texture coordinate
+     * @param oX x of originate point
+     * @param oY y of originate point
      */
     private void computeBackVertex(float x0, float y0, float tX,
                                    float sinA, float cosA, float coordX,
@@ -1305,19 +1338,22 @@ public class PageFlip {
 
     /**
      * Compute front vertex and base shadow vertex of fold page
+     * <p>Its computing principle is almost same with
+     * {@link #computeBackVertex(boolean, float, float, float, float, float,
+     * float, float, float, float, float, float)}</p>
      *
-     * @param isX Is vertex for x point on x axis or y point on y axis?
-     * @param x0 X of point on axis
-     * @param y0 Y of point on axis
-     * @param tX X of xFoldP1 point in rotated coordinate syste
-     * @param sinA Sin value of page curling angle
-     * @param cosA Cos value of page curling angel
-     * @param baseWcosA Base shadow width * cosA
-     * @param baseWsinA Base shadow width * sinA
-     * @param coordX X of texture coordinate
-     * @param coordY Y of texture coordinate
-     * @param oX X of originate point
-     * @param oY Y of originate point
+     * @param isX is vertex for x point on x axis or y point on y axis?
+     * @param x0 x of point on axis
+     * @param y0 y of point on axis
+     * @param tX x of xFoldP1 point in rotated coordinate system
+     * @param sinA sin value of page curling angle
+     * @param cosA cos value of page curling angel
+     * @param baseWcosA base shadow width * cosA
+     * @param baseWsinA base shadow width * sinA
+     * @param coordX x of texture coordinate
+     * @param coordY y of texture coordinate
+     * @param oX x of originate point
+     * @param oY y of originate point
      */
     private void computeFrontVertex(boolean isX, float x0, float y0, float tX,
                                     float sinA, float cosA,
@@ -1360,7 +1396,6 @@ public class PageFlip {
         float cosA = (oX - mTouchP.x) / mLenOfTouchOrigin;
 
         // need to translate before rotate, and then translate back
-        // deem originP as (0, 0);
         int count = mMeshCount;
         float xFoldP1 = (mXFoldP1.x - oX) * cosA;
         float edgeW = mFoldBackEdgesShadowWidth.width(mR);
@@ -1459,8 +1494,8 @@ public class PageFlip {
         mFoldFrontBaseShadow.vertexZ = -0.5f;
 
         // add two vertexes to connect with the unfold front page
-        page.buildVertexesOfPageWhenSlop(mFoldFrontVertexes, mXFoldP1, mYFoldP1,
-                                         mKValue);
+        page.buildVertexesOfPageWhenSlope(mFoldFrontVertexes, mXFoldP1, mYFoldP1,
+                                          mKValue);
         mFoldFrontVertexes.toFloatBuffer();
 
         // compute vertexes of fold edge shadow
@@ -1539,7 +1574,7 @@ public class PageFlip {
     }
 
     /**
-     * Compute tan value of curl angle
+     * Compute tan value of curling angle
      *
      * @param dy the diff value between touchP.y and originP.y
      * @return tan value of max curl angle
