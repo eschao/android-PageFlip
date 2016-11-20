@@ -77,7 +77,7 @@ class ShadowVertexes {
     private int mSpaceOfFrontRear;
 
     // forward and backward index for adding vertex
-    private int mBackward;
+    int mBackward;
     private int mForward;
 
     /**
@@ -228,18 +228,18 @@ class ShadowVertexes {
      * Add vertex to float buffer
      * Call {@link #reset()} before calling any add operations
      *
-     * @param isBackward is backward or forward adding
+     * @param isForward is backward or forward adding
      * @param startX start x coordinate
      * @param startY start y coordinate
      * @param endX end x coordinate
      * @param endY end y coordinate
-     * @return
+     * @return self
      */
-    public ShadowVertexes addVertexes(boolean isBackward,
+    public ShadowVertexes addVertexes(boolean isForward,
                                       float startX, float startY,
                                       float endX, float endY) {
-        return isBackward ? addVertexesBackward(startX, startY, endX, endY) :
-               addVertexesForward(startX, startY, endX, endY);
+        return isForward ? addVertexesForward(startX, startY, endX, endY) :
+               addVertexesBackward(startX, startY, endX, endY);
     }
 
     /**
@@ -258,7 +258,7 @@ class ShadowVertexes {
      * put given length data from float array to float buffer
      *
      * @param length data length
-     * @return
+     * @return self
      */
     public ShadowVertexes toFloatBuffer(int length) {
         mVertexesBuffer.put(mVertexes, 0, length).position(0);

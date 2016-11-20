@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="Mesh Pixels">
+        <menu>
+            <group android:id="@+id/mesh" android:checkableBehavior="single">
+                <item android:id="@+id/mesh_2p" android:title="2 Pixels"/>
+                <item android:id="@+id/mesh_5p" android:title="5 Pixels"/>
+                <item android:id="@+id/mesh_10p" android:title="10 Pixels"/>
+                <item android:id="@+id/mesh_20p" android:title="20 Pixels"/>
+            </group>
+        </menu>
+    </item>
+    <item android:title="Animate Duration">
+        <menu>
+            <group android:id="@+id/duration" android:checkableBehavior="single">
+                <item android:id="@+id/animation_1s" android:title="1s Duration"/>
+                <item android:id="@+id/animation_2s" android:title="2s Duration"/>
+                <item android:id="@+id/animation_5s" android:title="5s Duration"/>
+            </group>
+        </menu>
+    </item>
+    <item android:title="Page Mode">
+        <menu>
+            <group android:id="@+id/mode" android:checkableBehavior="single">
+                <item android:id="@+id/auoto_page" android:title="Auto Page"/>
+                <item android:id="@+id/single_page" android:title="Single Page"/>
+            </group>
+        </menu>
+    </item>
+</menu>

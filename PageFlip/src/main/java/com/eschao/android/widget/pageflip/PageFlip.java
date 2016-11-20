@@ -56,9 +56,11 @@ public class PageFlip {
 
     // default pixels of mesh vertex
     private final static int DEFAULT_MESH_VERTEX_PIXELS = 10;
+    private final static int MESH_COUNT_THRESHOLD = 20;
 
     // The min page curl angle (5 degree)
     private final static int MIN_PAGE_CURL_ANGLE = 5;
+    // The max page curl angle (5 degree)
     private final static int MAX_PAGE_CURL_ANGLE = 65;
     private final static int PAGE_CURL_ANGEL_DIFF = MAX_PAGE_CURL_ANGLE -
                                                     MIN_PAGE_CURL_ANGLE;
@@ -164,7 +166,7 @@ public class PageFlip {
     // A is angle between X axis and line from mTouchP to originP
     // the max curling angle between line from touchP to originP and X axis
     private float mMaxT2OAngleTan;
-    // another max curling angle when finger moving cause the originP change
+    // another max curling angle when finger moving causes the originP change
     // from (x, y) to (x, -y) which means mirror based on Y axis.
     private float mMaxT2DAngleTan;
     // the tan value of current curling angle
@@ -274,7 +276,7 @@ public class PageFlip {
     }
 
     /**
-     * Enable/disable page mode
+     * Enable/disable auto page mode
      * <pre>
      * The default value is single page mode, which means there is only one page
      * no matter what the screen is portrait or landscape. If set mode with auto
@@ -283,11 +285,34 @@ public class PageFlip {
      * </pre>
      *
      * @param isAuto true if set mode with auto page
-     * @return self
+     * @return true if pages are recreated and need to render page
      */
-    public PageFlip enableAutoPageMode(boolean isAuto) {
-        mPageMode = isAuto ? AUTO_PAGE_MODE : SINGLE_PAGE_MODE;
-        return this;
+    public boolean enableAutoPage(boolean isAuto) {
+        int newMode = isAuto ? AUTO_PAGE_MODE : SINGLE_PAGE_MODE;
+        if (mPageMode != newMode) {
+
+            mPageMode = newMode;
+            if ((newMode == AUTO_PAGE_MODE &&
+                 mViewRect.surfaceW > mViewRect.surfaceH &&
+                 mPages[SECOND_PAGE] == null) ||
+                (newMode == SINGLE_PAGE_MODE &&
+                 mPages[SECOND_PAGE] != null)) {
+
+                createPages();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Is auto page mode enabled?
+     *
+     * @return true if auto page mode is enabled
+     */
+    public boolean isAutoPageEnabled() {
+        return mPageMode == AUTO_PAGE_MODE;
     }
 
     /**
@@ -322,7 +347,7 @@ public class PageFlip {
     }
 
     /**
-     * Sets pixels of mesh vertex
+     * Sets pixels of each mesh
      * <p>The default value is 10 pixels for each mesh</p>
      *
      * @param pixelsOfMesh pixel amount of each mesh
@@ -332,6 +357,15 @@ public class PageFlip {
         mPixelsOfMesh = pixelsOfMesh > 0 ? pixelsOfMesh :
                         DEFAULT_MESH_VERTEX_PIXELS;
         return this;
+    }
+
+    /**
+     * Get pixels of mesh vertex
+     *
+     * @return pixels of each mesh:w
+     */
+    public int getPixelsOfMesh() {
+        return mPixelsOfMesh;
     }
 
     /**
@@ -436,6 +470,24 @@ public class PageFlip {
     }
 
     /**
+     * Get surface width
+     *
+     * @return surface width
+     */
+    public int getSurfaceWidth() {
+        return (int)mViewRect.surfaceW;
+    }
+
+    /**
+     * Get surface height
+     *
+     * @return surface height
+     */
+    public int getSurfaceHeight() {
+        return (int)mViewRect.surfaceH;
+    }
+
+    /**
      * Get page flip state
      *
      * @return page flip state
@@ -485,7 +537,13 @@ public class PageFlip {
         mVertexProgram.initMatrix(-mViewRect.halfW, mViewRect.halfW,
                                   -mViewRect.halfH, mViewRect.halfH);
         computeMeshVertexesCount();
+        createPages();
+    }
 
+    /**
+     * Create pages
+     */
+    private void createPages() {
         // release textures hold in pages
         if (mPages[FIRST_PAGE] != null) {
             mPages[FIRST_PAGE].deleteAllTextures();
@@ -496,7 +554,8 @@ public class PageFlip {
         }
 
         // landscape
-        if (mPageMode == AUTO_PAGE_MODE && width > height) {
+        if (mPageMode == AUTO_PAGE_MODE &&
+            mViewRect.surfaceW > mViewRect.surfaceH) {
             mPages[FIRST_PAGE] = new Page(mViewRect.left, 0,
                                           mViewRect.top, mViewRect.bottom);
             mPages[SECOND_PAGE] = new Page(0, mViewRect.right,
@@ -525,8 +584,9 @@ public class PageFlip {
         if (mPages[FIRST_PAGE].contains(touchX, touchY)) {
             isContained = true;
         }
-        else if (mPages[SECOND_PAGE].contains(touchX, touchY)) {
-            // in double pages, the first page always is active page which touch
+        else if (mPages[SECOND_PAGE] != null &&
+                 mPages[SECOND_PAGE].contains(touchX, touchY)) {
+            // in double pages, the first page is always active page which touch
             // event is happening on
             isContained = true;
             Page p = mPages[SECOND_PAGE];
@@ -567,7 +627,7 @@ public class PageFlip {
 
         // begin to move
         if (mFlipState == PageFlipState.BEGIN_FLIP &&
-            (Math.abs(dx) > mViewRect.width / 10)) {
+            (Math.abs(dx) > mViewRect.width * 0.05f)) {
             // set OriginP and DiagonalP points
             page.setOriginPoint(mPages[SECOND_PAGE] != null, dy);
 
@@ -659,7 +719,7 @@ public class PageFlip {
                     return false;
                 }
 
-                dy = (int)Math.sqrt(dy2);
+                dy = (float)Math.sqrt(dy2);
                 if (originP.y > 0) {
                     dy = -dy;
                 }
@@ -714,10 +774,16 @@ public class PageFlip {
             end.y = (int)(originP.y);
         }
         // backward flipping
-        else if (mFlipState == PageFlipState.BACKWARD_FLIP ||
-                 mFlipState == PageFlipState.RESTORE_FLIP) {
-            mMaxT2OAngleTan = (mTouchP.y - originP.y) / (mTouchP.x - originP.x);
-            end.set((int)originP.x, (int)originP.y);
+        else if (mFlipState == PageFlipState.BACKWARD_FLIP) {
+            // if not over middle x, change from backward to forward to restore
+            if (!page.isXInRange(touchX, 0.5f)) {
+                mFlipState = PageFlipState.FORWARD_FLIP;
+                end.set((int)(diagonalP.x - page.width), (int)originP.y);
+            }
+            else {
+                mMaxT2OAngleTan = (mTouchP.y - originP.y) / (mTouchP.x - originP.x);
+                end.set((int) originP.x, (int) originP.y);
+            }
         }
         // ready to flip
         else if (mFlipState == PageFlipState.BEGIN_FLIP) {
@@ -1020,7 +1086,6 @@ public class PageFlip {
                                hasSecondPage,
                                mGradientShadowTextureID);
 
-
         // 2. draw unfold page and fold front part
         glUseProgram(mVertexProgram.hProgram);
         glActiveTexture(GL_TEXTURE0);
@@ -1071,7 +1136,7 @@ public class PageFlip {
 
         // init vertexes buffers
         mFoldBackVertexes.set(maxMeshCount + 2);
-        mFoldFrontVertexes.set(maxMeshCount + 8, 3, true);
+        mFoldFrontVertexes.set((maxMeshCount << 1) + 8, 3, true);
         mFoldBackEdgesShadow.set(maxMeshCount + 2);
         mFoldFrontBaseShadow.set(maxMeshCount + 2);
     }
@@ -1256,7 +1321,7 @@ public class PageFlip {
      * 2. shadow point has same z coordinate with the page point
      * </pre>
      *
-     * @param isY is vertex for x point on x axis or y point on y axis?
+     * @param isX is vertex for x point on x axis or y point on y axis?
      * @param x0 x of point on axis
      * @param y0 y of point on axis
      * @param sx0 x of edge shadow point
@@ -1269,7 +1334,7 @@ public class PageFlip {
      * @param oX x of originate point
      * @param oY y of originate point
      */
-    private void computeBackVertex(boolean isY, float x0, float y0, float sx0,
+    private void computeBackVertex(boolean isX, float x0, float y0, float sx0,
                                    float sy0, float tX, float sinA, float cosA,
                                    float coordX, float coordY, float oX,
                                    float oY) {
@@ -1295,7 +1360,7 @@ public class PageFlip {
         // compute coordinates of fold shadow edge
         float sRadian = (sx - tX) / mR;
         sx = (float)(tX + mR * Math.sin(sRadian));
-        mFoldBackEdgesShadow.addVertexes(isY, cx, cy,
+        mFoldBackEdgesShadow.addVertexes(isX, cx, cy,
                                          sx * cosA + sy * sinA + oX,
                                          sy * cosA - sx * sinA + oY);
     }
@@ -1338,7 +1403,7 @@ public class PageFlip {
 
     /**
      * Compute front vertex and base shadow vertex of fold page
-     * <p>Its computing principle is almost same with
+     * <p>The computing principle is almost same with
      * {@link #computeBackVertex(boolean, float, float, float, float, float,
      * float, float, float, float, float, float)}</p>
      *
@@ -1356,10 +1421,10 @@ public class PageFlip {
      * @param oY y of originate point
      */
     private void computeFrontVertex(boolean isX, float x0, float y0, float tX,
-                                    float sinA, float cosA,
-                                    float baseWcosA, float baseWsinA,
-                                    float coordX, float coordY,
-                                    float oX, float oY) {
+                                         float sinA, float cosA,
+                                         float baseWcosA, float baseWsinA,
+                                         float coordX, float coordY,
+                                         float oX, float oY) {
         // rotate degree A
         float x = x0 * cosA - y0 * sinA;
         float y = x0 * sinA + y0 * cosA;
@@ -1375,6 +1440,40 @@ public class PageFlip {
         mFoldFrontVertexes.addVertex(cx, cy, cz, coordX, coordY);
         mFoldFrontBaseShadow.addVertexes(isX, cx, cy,
                                          cx + baseWcosA, cy - baseWsinA);
+    }
+
+    private void computeFrontVertex(float x0, float y0, float tX,
+                                    float sinA, float cosA, float baseX,
+                                    float coordX, float coordY,
+                                    float oX, float oY, float dY) {
+        // rotate degree A
+        float x = x0 * cosA - y0 * sinA;
+        float y = x0 * sinA + y0 * cosA;
+
+        // compute mapping point on cylinder
+        float rad = (x - tX)/ mR;
+        x = (float)(tX + mR * Math.sin(rad));
+        float cz = (float)(mR * (1 - Math.cos(rad)));
+
+        // rotate degree -A, sin(-A) = -sin(A), cos(-A) = cos(A)
+        float cx = x * cosA + y * sinA + oX;
+        float cy = y * cosA - x * sinA + oY;
+        mFoldFrontVertexes.addVertex(cx, cy, cz, coordX, coordY);
+        //mFoldFrontBaseShadow.addVertexes(false, cx, cy,
+        //                                 cx + baseWcosA, cy);
+        //Log.d(TAG, "cx: "+cx);
+    }
+
+    private void computeShadowBaseV(float sinA, float cosA, float baseW,
+                                    float oX, float oY, float dY) {
+        float lastX = mFoldFrontVertexes.mVertexes[3];
+        float bx = mKValue * (mYFoldP.y - baseW/sinA - dY) + oX;
+        if (bx < 200) {
+            Log.d(TAG, "bx < 200");
+        }
+        Log.d(TAG, "x1: " + lastX + "  x2:"+bx);
+        mFoldFrontBaseShadow.addVertexes(false, lastX, dY, bx, dY);
+
     }
 
     /**
@@ -1427,34 +1526,36 @@ public class PageFlip {
         int i = 0;
         for (;i <= count && Math.abs(y) < height;
              ++i, x -= stepX, y -= stepY, sy -= stepSY, sx -= stepSX) {
-            computeBackVertex(false, x, 0, x, sy, xFoldP1, sinA, cosA,
+            computeBackVertex(true, x, 0, x, sy, xFoldP1, sinA, cosA,
                               page.textureX(x + oX), cOY, oX, oY);
-            computeBackVertex(true, 0, y, sx, y, xFoldP1, sinA, cosA, cOX,
+            computeBackVertex(false, 0, y, sx, y, xFoldP1, sinA, cosA, cOX,
                               page.textureY(y + oY), oX, oY);
         }
 
         if (i <= count) {
             if (y != height) {
+                /*
                 if (Math.abs(mYFoldP0.y - oY) > height) {
                     float tx = oX + 2 * mKValue * (mYFoldP.y - dY);
                     float ty = dY + mKValue * (tx - oX);
                     mFoldBackVertexes.addVertex(tx, ty, 1, 0, cOX, cDY);
                     float tsx = tx - sx;
                     float tsy = dY + mKValue * (tsx - oX);
-                    mFoldBackEdgesShadow.addVertexes(true, tx, ty, tsx, tsy);
+                    mFoldBackEdgesShadow.addVertexes(false, tx, ty, tsx, tsy);
                 }
                 else {
+                */
                     float x1 = mKValue * d2oY;
-                    computeBackVertex(false, x1, 0, x1, sy, xFoldP1, sinA, cosA,
+                    computeBackVertex(true, x1, 0, x1, sy, xFoldP1, sinA, cosA,
                                       page.textureX(x1 + oX), cOY, oX, oY);
-                    computeBackVertex(true, 0, d2oY, sx, d2oY, xFoldP1, sinA,
+                    computeBackVertex(false, 0, d2oY, sx, d2oY, xFoldP1, sinA,
                                       cosA, cOX, cDY, oX, oY) ;
-                }
+                //}
             }
 
             for (; i <= count;
                  ++i, x -= stepX, y -= stepY, sy -= stepSY, sx -= stepSX) {
-                computeBackVertex(false, x, 0, x, sy, xFoldP1, sinA, cosA,
+                computeBackVertex(true, x, 0, x, sy, xFoldP1, sinA, cosA,
                                   page.textureX(x + oX), cOY, oX, oY);
                 float x1 = mKValue * (y + oY - dY);
                 computeBackVertex(x1, d2oY, xFoldP1, sinA, cosA,
@@ -1469,8 +1570,8 @@ public class PageFlip {
         stepY = (mYFoldP.y - mYFoldP1.y) / count;
         x = mXFoldP.x - oX - stepX;
         y = mYFoldP.y - oY - stepY;
-        int j = 1;
-        for (; j <= count && Math.abs(y) < height; ++j, x -= stepX, y -= stepY) {
+        int j = 0;
+        for (; j < count && Math.abs(y) < height; ++j, x -= stepX, y -= stepY) {
             computeFrontVertex(true, x, 0, xFoldP1, sinA, cosA,
                                baseWcosA, baseWsinA,
                                page.textureX(x + oX), cOY, oX, oY);
@@ -1479,14 +1580,43 @@ public class PageFlip {
                                cOX, page.textureY(y + oY), oX, oY);
         }
 
-        for (; j <= count; ++j, x -= stepX, y -= stepY) {
-            computeFrontVertex(true, x, 0, xFoldP1, sinA, cosA,
-                               baseWcosA, baseWsinA,
-                               page.textureX(x + oX), cOY, oX, oY);
-            float x1 = mKValue * (y + oY - dY);
-            computeFrontVertex(false, x1, d2oY, xFoldP1, sinA, cosA,
-                               baseWcosA, baseWsinA,
-                               page.textureX(x1 + oX), cDY, oX, oY);
+        Log.d(TAG, "j: "+j+"  count:"+count);
+        if (j < count) {
+            if (y != height) {
+                float x1 = mKValue * d2oY;
+                computeFrontVertex(x1, 0, xFoldP1, sinA, cosA,
+                                   baseWcosA,
+                                   page.textureX(x1 + oX), cOY, oX, oY, dY);
+                computeFrontVertex(0, d2oY, xFoldP1, sinA, cosA, baseWcosA,
+                                   cOX, cDY, oX, oY, dY) ;
+            }
+
+            float lastX = mFoldFrontVertexes.mVertexes[3];
+            //mFoldFrontBaseShadow.addVertexes(false, lastX, dY, lastX + baseWcosA, dY);
+
+            //Log.d(TAG, "x1: "+lastX+"  x2:"+(lastX+baseWcosA)+"  y:"+dY+"  c:"+mFoldFrontBaseShadow.mBackward);
+            float bx = mKValue * (mYFoldP.y - baseW/sinA - dY) + oX;
+            if (bx < 200) {
+               Log.d(TAG, "bx < 200");
+            }
+            int k = mFoldFrontBaseShadow.mMaxBackward;
+            float xbx = mFoldFrontBaseShadow.mVertexes[k];
+            float xby = mFoldFrontBaseShadow.mVertexes[k+1];
+            float bx1 = xbx + mKValue * (xby - dY);
+            xbx = mFoldFrontBaseShadow.mVertexes[k+4];
+            xby = mFoldFrontBaseShadow.mVertexes[k+5];
+            float bx2 = xbx + mKValue * (xby - dY);
+            mFoldFrontBaseShadow.addVertexes(false, bx1, dY, bx2, dY);
+            Log.d(TAG, "x1: " + bx1 + "  x2:"+bx2);
+            for (; j < count; ++j, x -= stepX, y -= stepY) {
+                computeFrontVertex(true, x, 0, xFoldP1, sinA, cosA,
+                                   baseWcosA, baseWsinA,
+                                   page.textureX(x + oX), cOY, oX, oY);
+                float x1 = mKValue * (y + oY - dY);
+                computeFrontVertex(x1, d2oY, xFoldP1, sinA, cosA, baseWcosA,
+                                   page.textureX(x1 + oX), cDY, oX, oY, dY);
+            }
+
         }
 
         // set uniform Z value for shadow vertexes
@@ -1557,11 +1687,15 @@ public class PageFlip {
     private void computeMeshCount() {
         float dx = Math.abs(mXFoldP0.x - mXFoldP1.x);
         float dy = Math.abs(mYFoldP0.y - mYFoldP1.y);
-        if (mIsVertical) {
-            mMeshCount = (int)dx / mPixelsOfMesh;
-        }
-        else {
-            mMeshCount = (int)Math.min(dx, dy) / mPixelsOfMesh;
+        int len = mIsVertical ? (int)dx : (int)Math.min(dx, dy);
+        mMeshCount = 0;
+
+        // make sure mesh count is greater than threshold, if less than it,
+        // the page maybe is drawn unsmoothly
+        for (int i = mPixelsOfMesh;
+             i >= 1 && mMeshCount < MESH_COUNT_THRESHOLD;
+             i >>= 1) {
+            mMeshCount = len / i;
         }
 
         // keep count is even

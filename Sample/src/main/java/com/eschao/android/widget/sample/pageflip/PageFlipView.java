@@ -16,13 +16,12 @@
 package com.eschao.android.widget.sample.pageflip;
 
 import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLSurfaceView.Renderer;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.eschao.android.widget.pageflip.PageFlip;
@@ -43,11 +42,8 @@ public class PageFlipView extends GLSurfaceView implements Renderer {
 
     private final static String TAG = "PageFlipView";
 
-    final static int GREY_FABRIC_BG_TYPE = 0;
-    final static int SURFACE_BG_TYPE = 1;
-
     int mPageNo;
-    int mBackgroundType;
+    int mDuration;
     Handler mHandler;
     PageFlip mPageFlip;
     PageRender mPageRender;
@@ -56,24 +52,120 @@ public class PageFlipView extends GLSurfaceView implements Renderer {
     public PageFlipView(Context context) {
         super(context);
 
+        // create handler to tackle message
         newHandler();
+
+        // load preferences
+        SharedPreferences pref = PreferenceManager
+                                    .getDefaultSharedPreferences(context);
+        mDuration = pref.getInt(Constants.PREF_DURATION, 1000);
+        int pixelsOfMesh = pref.getInt(Constants.PREF_MESH_PIXELS, 10);
+        boolean isAuto = pref.getBoolean(Constants.PREF_PAGE_MODE, true);
+
+        // create PageFlip
         mPageFlip = new PageFlip(context);
         mPageFlip.setSemiPerimeterRatio(0.8f)
                  .setShadowWidthOfFoldEdges(5, 60, 0.3f)
                  .setShadowWidthOfFoldBase(5, 80, 0.4f)
-                 .setPixelsOfMesh(5)
-                 .enableAutoPageMode(true);
+                 .setPixelsOfMesh(pixelsOfMesh)
+                 .setShadowColorOfFoldBase(0, 1, 0.5f, 0)
+                 .enableAutoPage(isAuto);
         setEGLContextClientVersion(2);
-        //setEGLConfigChooser(8, 8, 8, 8, 16, 0);
-        //getHolder().setFormat(PixelFormat.RGBA_8888);
-        //mRender = new PageFlipFlipRender();
+
+        // init others
         mPageNo = 1;
         mDrawLock = new ReentrantLock();
-        mBackgroundType = /*SURFACE_BG_TYPE;*/GREY_FABRIC_BG_TYPE;
         mPageRender = new SinglePageRender(context, mPageFlip,
                                            mHandler, mPageNo);
+        // configure render
         setRenderer(this);
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+    }
+
+    /**
+     * Is auto page mode enabled?
+     *
+     * @return true if auto page mode enabled
+     */
+    public boolean isAutoPageEnabled() {
+        return mPageFlip.isAutoPageEnabled();
+    }
+
+    /**
+     * Enable/Disable auto page mode
+     *
+     * @param enable true is enable
+     */
+    public void enableAutoPage(boolean enable) {
+        if (mPageFlip.enableAutoPage(enable)) {
+            try {
+                mDrawLock.lock();
+                if (mPageFlip.getSecondPage() != null &&
+                    mPageRender instanceof SinglePageRender) {
+                    mPageRender = new DoublePagesRender(getContext(),
+                                                        mPageFlip,
+                                                        mHandler,
+                                                        mPageNo);
+                    mPageRender.onSurfaceChanged(mPageFlip.getSurfaceWidth(),
+                                                 mPageFlip.getSurfaceHeight());
+                }
+                else if (mPageFlip.getSecondPage() == null &&
+                         mPageRender instanceof DoublePagesRender) {
+                    mPageRender = new SinglePageRender(getContext(),
+                                                       mPageFlip,
+                                                       mHandler,
+                                                       mPageNo);
+                    mPageRender.onSurfaceChanged(mPageFlip.getSurfaceWidth(),
+                                                 mPageFlip.getSurfaceHeight());
+                }
+                requestRender();
+            }
+            finally {
+                mDrawLock.unlock();
+            }
+        }
+    }
+
+    /**
+     * Get duration of animating
+     *
+     * @return duration of animating
+     */
+    public int getAnimateDuration() {
+        return mDuration;
+    }
+
+    /**
+     * Set animate duration
+     *
+     * @param duration duration of animating
+     */
+    public void setAnimateDuration(int duration) {
+        mDuration = duration;
+    }
+
+    /**
+     * Get pixels of mesh
+     *
+     * @return pixels of mesh
+     */
+    public int getPixelsOfMesh() {
+        return mPageFlip.getPixelsOfMesh();
+    }
+
+    /**
+     * Set pixels of mesh
+     *
+     * @param pixels pixel number of mesh
+     */
+    public void setPixelsOfMesh(int pixels) {
+        try {
+            mDrawLock.lock();
+            mPageFlip.setPixelsOfMesh(pixels);
+        }
+        finally {
+            mDrawLock.unlock();
+        }
     }
 
     /**
@@ -127,7 +219,7 @@ public class PageFlipView extends GLSurfaceView implements Renderer {
      */
     public void onFingerUp(float x, float y) {
         if (!mPageFlip.isAnimating()) {
-            mPageFlip.onFingerUp(x, y, 1000);
+            mPageFlip.onFingerUp(x, y, mDuration);
             try {
                 mDrawLock.lock();
                 if (mPageRender != null &&
@@ -171,17 +263,6 @@ public class PageFlipView extends GLSurfaceView implements Renderer {
         try {
             mPageFlip.onSurfaceChanged(width, height);
 
-            // get selected background
-            int resID = chooseBackground(width, height, mBackgroundType);
-            if (resID == -1) {
-               Log.d(TAG, "Can'top get a valid background resource id");
-                return;
-            }
-
-            // decode background bitmap
-            Resources res = getContext().getResources();
-            Bitmap bitmap = BitmapFactory.decodeResource(res, resID);
-
             // if there is the second page, create double page render when need
             int pageNo = mPageRender.getPageNo();
             if (mPageFlip.getSecondPage() != null && width > height) {
@@ -203,7 +284,7 @@ public class PageFlipView extends GLSurfaceView implements Renderer {
             }
 
             // let page render handle surface change
-            mPageRender.onSurfaceChanged(bitmap);
+            mPageRender.onSurfaceChanged(width, height);
         }
         catch (PageFlipException e) {
             Log.e(TAG, "Failed to run PageFlipFlipRender:onSurfaceChanged");
@@ -224,56 +305,6 @@ public class PageFlipView extends GLSurfaceView implements Renderer {
         catch (PageFlipException e) {
             Log.e(TAG, "Failed to run PageFlipFlipRender:onSurfaceCreated");
         }
-    }
-
-    private int chooseBackground(int w, int h, int type) {
-        if ((w <= 800 && h <= 480) ||
-            (w <= 480 && h <= 800)) {
-            if (type == GREY_FABRIC_BG_TYPE) {
-                return R.drawable.grey_fabric_480x800;
-            }
-            else if (type == SURFACE_BG_TYPE) {
-                return R.drawable.surface_480x800;
-            }
-        }
-        else if ((w <= 854 && h <= 480) ||
-                 (w <= 480 && h <= 854)) {
-            if (type == GREY_FABRIC_BG_TYPE) {
-                return R.drawable.grey_fabric_480x854;
-            }
-            else if (type == SURFACE_BG_TYPE) {
-                return R.drawable.surface_480x854;
-            }
-        }
-        else if ((w <= 720 && h <= 1280) ||
-                 (w <= 1280 && h <= 720)) {
-            if (type == GREY_FABRIC_BG_TYPE) {
-                return R.drawable.grey_fabric_720x1280;
-            }
-            else if (type == SURFACE_BG_TYPE) {
-                return R.drawable.surface_720x1280;
-            }
-        }
-        else if ((w <= 800 && h <= 1280) ||
-                 (w <= 1280 && h <= 800)) {
-            if (type == GREY_FABRIC_BG_TYPE) {
-                return R.drawable.grey_fabric_800x1280;
-            }
-            else if (type == SURFACE_BG_TYPE) {
-                return R.drawable.surface_800x1280;
-            }
-        }
-        else if ((w <= 1080 && h <= 1920) ||
-                 (w <= 1920 && h <= 1080)) {
-            if (type == GREY_FABRIC_BG_TYPE) {
-                return R.drawable.grey_fabric_1080x1920;
-            }
-            else if (type == SURFACE_BG_TYPE) {
-                return R.drawable.surface_1080x1920;
-            }
-        }
-
-        return -1;
     }
 
     /**

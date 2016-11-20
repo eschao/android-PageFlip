@@ -19,7 +19,9 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.opengl.GLUtils;
+import android.text.method.BaseKeyListener;
 
+import java.io.FileReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -117,7 +119,7 @@ public class Page {
     Vertexes mVertexes;
 
     // mask color of back texture
-    float maskColor[];
+    float[][] maskColor;
 
     // texture(front, back and second) ids allocated by OpenGL
     int[] mTexIDs;
@@ -141,7 +143,11 @@ public class Page {
 
         originP = new GPoint();
         diagonalP = new GPoint();
-        maskColor = new float[] {0, 0, 0};
+        maskColor = new float[][] {
+                        new float[] {0, 0, 0},
+                        new float[] {0, 0, 0},
+                        new float[] {0, 0, 0}};
+
         mTexIDs = new int[] {INVALID_TEXTURE_ID,
                              INVALID_TEXTURE_ID,
                              INVALID_TEXTURE_ID};
@@ -168,7 +174,11 @@ public class Page {
 
         originP = new GPoint();
         diagonalP = new GPoint();
-        maskColor = new float[] {0, 0, 0};
+        maskColor = new float[][] {
+                        new float[] {0, 0, 0},
+                        new float[] {0, 0, 0},
+                        new float[] {0, 0, 0}};
+
         mTexIDs = new int[] {INVALID_TEXTURE_ID,
                              INVALID_TEXTURE_ID,
                              INVALID_TEXTURE_ID};
@@ -268,6 +278,9 @@ public class Page {
             mUnusedTexIDs[mUnusedTexSize++] = mTexIDs[FIRST_TEXTURE_ID];
         }
 
+        maskColor[FIRST_TEXTURE_ID][0] = maskColor[SECOND_TEXTURE_ID][0];
+        maskColor[FIRST_TEXTURE_ID][1] = maskColor[SECOND_TEXTURE_ID][1];
+        maskColor[FIRST_TEXTURE_ID][2] = maskColor[SECOND_TEXTURE_ID][2];
         mTexIDs[FIRST_TEXTURE_ID] = mTexIDs[SECOND_TEXTURE_ID];
         mTexIDs[SECOND_TEXTURE_ID] = INVALID_TEXTURE_ID;
         return this;
@@ -285,6 +298,9 @@ public class Page {
             mUnusedTexIDs[mUnusedTexSize++] = mTexIDs[SECOND_TEXTURE_ID];
         }
 
+        maskColor[SECOND_TEXTURE_ID][0] = maskColor[FIRST_TEXTURE_ID][0];
+        maskColor[SECOND_TEXTURE_ID][1] = maskColor[FIRST_TEXTURE_ID][1];
+        maskColor[SECOND_TEXTURE_ID][2] = maskColor[FIRST_TEXTURE_ID][2];
         mTexIDs[SECOND_TEXTURE_ID] = mTexIDs[FIRST_TEXTURE_ID];
         mTexIDs[FIRST_TEXTURE_ID] = INVALID_TEXTURE_ID;
         return this;
@@ -438,10 +454,10 @@ public class Page {
      */
     public void setFirstTexture(Bitmap b) {
         // compute mask color
-        int color = PageFlipUtils.computeAverageColor(b, 50);
-        maskColor[0] = Color.red(color) / 255.0f;
-        maskColor[1] = Color.green(color) / 255.0f;
-        maskColor[2] = Color.blue(color) / 255.0f;
+        int color = PageFlipUtils.computeAverageColor(b, 30);
+        maskColor[FIRST_TEXTURE_ID][0] = Color.red(color) / 255.0f;
+        maskColor[FIRST_TEXTURE_ID][1] = Color.green(color) / 255.0f;
+        maskColor[FIRST_TEXTURE_ID][2] = Color.blue(color) / 255.0f;
 
         glGenTextures(1, mTexIDs, FIRST_TEXTURE_ID);
         glActiveTexture(GL_TEXTURE0);
@@ -457,6 +473,12 @@ public class Page {
      * @param b Bitmap object for creating texture
      */
     public void setSecondTexture(Bitmap b) {
+        // compute mask color
+        int color = PageFlipUtils.computeAverageColor(b, 30);
+        maskColor[SECOND_TEXTURE_ID][0] = Color.red(color) / 255.0f;
+        maskColor[SECOND_TEXTURE_ID][1] = Color.green(color) / 255.0f;
+        maskColor[SECOND_TEXTURE_ID][2] = Color.blue(color) / 255.0f;
+
         glGenTextures(1, mTexIDs, SECOND_TEXTURE_ID);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, mTexIDs[SECOND_TEXTURE_ID]);
@@ -483,9 +505,9 @@ public class Page {
         else {
             // compute mask color
             int color = PageFlipUtils.computeAverageColor(b, 50);
-            maskColor[0] = Color.red(color) / 255.0f;
-            maskColor[1] = Color.green(color) / 255.0f;
-            maskColor[2] = Color.blue(color) / 255.0f;
+            maskColor[BACK_TEXTURE_ID][0] = Color.red(color) / 255.0f;
+            maskColor[BACK_TEXTURE_ID][1] = Color.green(color) / 255.0f;
+            maskColor[BACK_TEXTURE_ID][2] = Color.blue(color) / 255.0f;
 
             glGenTextures(1, mTexIDs, BACK_TEXTURE_ID);
             glBindTexture(GL_TEXTURE_2D, mTexIDs[BACK_TEXTURE_ID]);

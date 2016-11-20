@@ -136,9 +136,9 @@ final class FoldBackVertexes extends Vertexes {
 
         // set mask color and alpha
         glUniform4f(program.hMaskColor,
-                    page.maskColor[0],
-                    page.maskColor[1],
-                    page.maskColor[2],
+                    page.maskColor[0][0],
+                    page.maskColor[0][1],
+                    page.maskColor[0][2],
                     hasSecondPage ? 0 : mMaskAlpha);
 
         // draw triangles

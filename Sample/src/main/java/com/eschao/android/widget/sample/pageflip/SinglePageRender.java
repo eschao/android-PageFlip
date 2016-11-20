@@ -76,7 +76,7 @@ public class SinglePageRender extends PageRender {
             }
             // in backward flip, check first texture of first page is valid
             else if (!page.isFirstTextureSet()) {
-                drawPage(mPageNo - 1);
+                drawPage(--mPageNo);
                 page.setFirstTexture(mBitmap);
             }
 
@@ -106,9 +106,10 @@ public class SinglePageRender extends PageRender {
     /**
      * Handle GL surface is changed
      *
-     * @param background background bitmap
+     * @param width surface width
+     * @param height surface height
      */
-    public void onSurfaceChanged(Bitmap background) {
+    public void onSurfaceChanged(int width, int height) {
         // recycle bitmap resources if need
         if (mBackgroundBitmap != null) {
             mBackgroundBitmap.recycle();
@@ -119,13 +120,12 @@ public class SinglePageRender extends PageRender {
         }
 
         // create bitmap and canvas for page
-        mBackgroundBitmap = background;
+        //mBackgroundBitmap = background;
         Page page = mPageFlip.getFirstPage();
         mBitmap = Bitmap.createBitmap((int)page.width(), (int)page.height(),
                                       Bitmap.Config.ARGB_8888);
         mCanvas.setBitmap(mBitmap);
-        drawPage(mPageNo);
-        page.setFirstTexture(mBitmap);
+        LoadBitmapTask.get(mContext).set(width, height, 1);
     }
 
     /**
@@ -150,7 +150,8 @@ public class SinglePageRender extends PageRender {
                 final PageFlipState state = mPageFlip.getFlipState();
                 // update page number for backward flip
                 if (state == PageFlipState.END_WITH_BACKWARD) {
-                    mPageNo--;
+                    // don't do anything on page number since mPageNo is always
+                    // represents the FIRST_TEXTURE no;
                 }
                 // update page number and switch textures for forward flip
                 else if (state == PageFlipState.END_WITH_FORWARD) {
@@ -177,28 +178,24 @@ public class SinglePageRender extends PageRender {
         p.setFilterBitmap(true);
 
         // 1. draw background bitmap
+        Bitmap background = LoadBitmapTask.get(mContext).getBitmap();
         Rect rect = new Rect(0, 0, width, height);
-        if (width > height) {
-            mCanvas.rotate(90);
-            mCanvas.drawBitmap(mBackgroundBitmap, null, rect, p);
-            mCanvas.rotate(-90);
-        }
-        else {
-            mCanvas.drawBitmap(mBackgroundBitmap, null, rect, p);
-        }
+        mCanvas.drawBitmap(background, null, rect, p);
+        background.recycle();
+        background = null;
 
         // 2. draw page number
+        int fontSize = (int)(80 * mContext.getResources().getDisplayMetrics()
+                                          .scaledDensity);
         p.setColor(Color.WHITE);
         p.setStrokeWidth(1);
         p.setAntiAlias(true);
-        p.setTextSize(100);
+        p.setShadowLayer(5.0f, 8.0f, 8.0f, Color.BLACK);
+        p.setTextSize(fontSize);
         String text = String.valueOf(number);
         float textWidth = p.measureText(text);
-        mCanvas.drawText(text, (width - textWidth) / 2, height / 2, p);
-        mCanvas.drawText(text, (width - textWidth - 20),
-                         height - p.getTextSize() -20, p);
-
-        //mCanvas.drawBitmap(PageFlipUtils.createGradientBitmap(), 10, 10, null);
+        mCanvas.drawText(text, (width - textWidth) / 2,
+                         height - p.getTextSize() - 20, p);
     }
 
     /**

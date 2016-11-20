@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.eschao.android.widget.sample"
-        minSdkVersion 15
+        minSdkVersion 22
         targetSdkVersion 24
         versionCode 1
         versionName "1.0"

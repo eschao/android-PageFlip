@@ -125,9 +125,10 @@ public class DoublePagesRender extends PageRender {
     /**
      * Handle GL surface is changed
      *
-     * @param background background bitmap
+     * @param width surface width
+     * @param height surface height
      */
-    public void onSurfaceChanged(Bitmap background) {
+    public void onSurfaceChanged(int width, int height) {
         // recycle bitmap resources if need
         if (mBackgroundBitmap != null) {
             mBackgroundBitmap.recycle();
@@ -138,11 +139,13 @@ public class DoublePagesRender extends PageRender {
         }
 
         // create bitmap and canvas for page
-        mBackgroundBitmap = background;
+        //mBackgroundBitmap = background;
         Page page = mPageFlip.getFirstPage();
-        mBitmap = Bitmap.createBitmap((int)page.width(), (int)page.height(),
-                                      Bitmap.Config.ARGB_8888);
+        int pageW = (int)page.width();
+        int pageH = (int)page.height();
+        mBitmap = Bitmap.createBitmap(pageW, pageH, Bitmap.Config.ARGB_8888);
         mCanvas.setBitmap(mBitmap);
+        LoadBitmapTask.get(mContext).set(pageW, pageH, 2);
     }
 
     /**
@@ -202,21 +205,28 @@ public class DoublePagesRender extends PageRender {
         p.setFilterBitmap(true);
 
         // 1. draw background bitmap
+        Bitmap background = LoadBitmapTask.get(mContext).getBitmap();
         Rect rect = new Rect(0, 0, width, height);
         if (width > height) {
             mCanvas.rotate(90);
-            mCanvas.drawBitmap(mBackgroundBitmap, null, rect, p);
+            mCanvas.drawBitmap(background, null, rect, p);
             mCanvas.rotate(-90);
         }
         else {
-            mCanvas.drawBitmap(mBackgroundBitmap, null, rect, p);
+            mCanvas.drawBitmap(background, null, rect, p);
         }
 
+        background.recycle();
+        background = null;
+
         // 2. draw page number
+        int fontSize = (int)(80 * mContext.getResources().getDisplayMetrics()
+                                          .scaledDensity);
         p.setColor(Color.WHITE);
         p.setStrokeWidth(1);
         p.setAntiAlias(true);
-        p.setTextSize(100);
+        p.setShadowLayer(5.0f, 8.0f, 8.0f, Color.BLACK);
+        p.setTextSize(fontSize);
 
         String text = String.valueOf(number);
         if (number < 1) {
@@ -226,7 +236,8 @@ public class DoublePagesRender extends PageRender {
             text = "End";
         }
         float textWidth = p.measureText(text);
-        mCanvas.drawText(text, (width - textWidth) / 2, height / 2, p);
+        mCanvas.drawText(text, (width - textWidth) / 2,
+                         height - p.getTextSize() - 20, p);
     }
 
     /**
