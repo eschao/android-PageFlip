@@ -1464,16 +1464,23 @@ public class PageFlip {
         //Log.d(TAG, "cx: "+cx);
     }
 
-    private void computeShadowBaseV(float sinA, float cosA, float baseW,
-                                    float oX, float oY, float dY) {
-        float lastX = mFoldFrontVertexes.mVertexes[3];
-        float bx = mKValue * (mYFoldP.y - baseW/sinA - dY) + oX;
-        if (bx < 200) {
-            Log.d(TAG, "bx < 200");
-        }
-        Log.d(TAG, "x1: " + lastX + "  x2:"+bx);
-        mFoldFrontBaseShadow.addVertexes(false, lastX, dY, bx, dY);
+    private void computeBaseShadowTurningPoint(float py, float tX, float sinA, float cosA,
+                                               float baseW, float oX, float oY,
+                                               float dY) {
+        float x0 = mKValue * (py - dY);
+        float y0 = dY - oY;
+        float x1 = x0 * cosA - y0 * sinA;
+        float y1 = x0 * sinA + y0 * cosA;
+        // compute mapping point on cylinder
+        float rad = (x1 - tX)/ mR;
+        x1 = (float)(tX + mR * Math.sin(rad));
 
+        // rotate degree -A, sin(-A) = -sin(A), cos(-A) = cos(A)
+        float cx1 = x1 * cosA + y1 * sinA + oX;
+        float cx2 = cx1 + baseW / cosA;
+
+        Log.d(TAG, "x1: "+ cx1+"  x2:"+cx2);
+        mFoldFrontBaseShadow.addVertexes(false, cx1, dY, cx2, dY);
     }
 
     /**
@@ -1599,6 +1606,7 @@ public class PageFlip {
             if (bx < 200) {
                Log.d(TAG, "bx < 200");
             }
+            /*
             int k = mFoldFrontBaseShadow.mMaxBackward;
             float xbx = mFoldFrontBaseShadow.mVertexes[k];
             float xby = mFoldFrontBaseShadow.mVertexes[k+1];
@@ -1607,7 +1615,12 @@ public class PageFlip {
             xby = mFoldFrontBaseShadow.mVertexes[k+5];
             float bx2 = xbx + mKValue * (xby - dY);
             mFoldFrontBaseShadow.addVertexes(false, bx1, dY, bx2, dY);
-            Log.d(TAG, "x1: " + bx1 + "  x2:"+bx2);
+            */
+
+            if (j == 0) {
+                computeBaseShadowTurningPoint(mYFoldP.y - stepY, xFoldP1, sinA, cosA, baseW, oX, oY, dY);
+            }
+
             for (; j < count; ++j, x -= stepX, y -= stepY) {
                 computeFrontVertex(true, x, 0, xFoldP1, sinA, cosA,
                                    baseWcosA, baseWsinA,
