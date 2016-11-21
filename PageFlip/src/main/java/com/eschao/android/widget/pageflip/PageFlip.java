@@ -1100,7 +1100,7 @@ public class PageFlip {
         // 3. draw edge and base shadow of fold parts
         glUseProgram(mShadowVertexProgram.hProgram);
         mFoldFrontBaseShadow.draw(mShadowVertexProgram);
-        mFoldBackEdgesShadow.draw(mShadowVertexProgram);
+        //mFoldBackEdgesShadow.draw(mShadowVertexProgram);
     }
 
     /**
@@ -1424,7 +1424,7 @@ public class PageFlip {
                                          float sinA, float cosA,
                                          float baseWcosA, float baseWsinA,
                                          float coordX, float coordY,
-                                         float oX, float oY) {
+                                         float oX, float oY, float dY) {
         // rotate degree A
         float x = x0 * cosA - y0 * sinA;
         float y = x0 * sinA + y0 * cosA;
@@ -1440,6 +1440,10 @@ public class PageFlip {
         mFoldFrontVertexes.addVertex(cx, cy, cz, coordX, coordY);
         mFoldFrontBaseShadow.addVertexes(isX, cx, cy,
                                          cx + baseWcosA, cy - baseWsinA);
+        if (!isX) {
+            float k = cx + mKValue * (cy - dY);
+            Log.d(TAG, "v:(" + cx + ", " + cy + ", " + cz+")  ("+x0+", "+y0+") x:"+k);
+        }
     }
 
     private void computeFrontVertex(float x0, float y0, float tX,
@@ -1459,6 +1463,7 @@ public class PageFlip {
         float cx = x * cosA + y * sinA + oX;
         float cy = y * cosA - x * sinA + oY;
         mFoldFrontVertexes.addVertex(cx, cy, cz, coordX, coordY);
+        Log.d(TAG, "v:(" + cx + ", " + cy + ", " + cz+")  ("+x0+", "+y0+") k:"+mKValue);
         //mFoldFrontBaseShadow.addVertexes(false, cx, cy,
         //                                 cx + baseWcosA, cy);
         //Log.d(TAG, "cx: "+cx);
@@ -1467,6 +1472,7 @@ public class PageFlip {
     private void computeBaseShadowTurningPoint(float py, float tX, float sinA, float cosA,
                                                float baseW, float oX, float oY,
                                                float dY) {
+        /*
         float x0 = mKValue * (py - dY);
         float y0 = dY - oY;
         float x1 = x0 * cosA - y0 * sinA;
@@ -1478,9 +1484,25 @@ public class PageFlip {
         // rotate degree -A, sin(-A) = -sin(A), cos(-A) = cos(A)
         float cx1 = x1 * cosA + y1 * sinA + oX;
         float cx2 = cx1 + baseW / cosA;
+        */
 
-        Log.d(TAG, "x1: "+ cx1+"  x2:"+cx2);
-        mFoldFrontBaseShadow.addVertexes(false, cx1, dY, cx2, dY);
+        int i = mFoldFrontBaseShadow.mMaxBackward;
+        float fx1 = mFoldFrontBaseShadow.mVertexes[i];
+        float fy1 = mFoldFrontBaseShadow.mVertexes[i+1];
+        float fx2 = mFoldFrontBaseShadow.mVertexes[i+4];
+        float fy2 = mFoldFrontBaseShadow.mVertexes[i+5];
+
+        float bx1 = fx1 + mKValue * (fy1 - dY);
+        float bx2 = fx2 + mKValue * (fy2 - dY);
+        //Log.d(TAG, " x1: "+cx1+"   x2:"+cx2);
+        /*
+        Log.d(TAG, "bx1: "+bx1+"  bx2:"+bx2);
+        Log.d(TAG, "x3: "+mFoldFrontBaseShadow.mVertexes[i]+"  y3:"+mFoldFrontBaseShadow.mVertexes[i+1]);
+        Log.d(TAG, "x4: "+mFoldFrontBaseShadow.mVertexes[i+4]+"  y3:"+mFoldFrontBaseShadow.mVertexes[i+5]);
+        Log.d(TAG, "mKValue: "+mKValue+" sinA:"+sinA+" cosA:"+cosA);
+        */
+
+        //mFoldFrontBaseShadow.addVertexes(false, bx1, dY, bx2, dY);
     }
 
     /**
@@ -1540,7 +1562,7 @@ public class PageFlip {
         }
 
         if (i <= count) {
-            if (y != height) {
+            if (Math.abs(y) != height) {
                 /*
                 if (Math.abs(mYFoldP0.y - oY) > height) {
                     float tx = oX + 2 * mKValue * (mYFoldP.y - dY);
@@ -1581,53 +1603,57 @@ public class PageFlip {
         for (; j < count && Math.abs(y) < height; ++j, x -= stepX, y -= stepY) {
             computeFrontVertex(true, x, 0, xFoldP1, sinA, cosA,
                                baseWcosA, baseWsinA,
-                               page.textureX(x + oX), cOY, oX, oY);
+                               page.textureX(x + oX), cOY, oX, oY, dY);
             computeFrontVertex(false, 0, y, xFoldP1, sinA, cosA,
                                baseWcosA, baseWsinA,
-                               cOX, page.textureY(y + oY), oX, oY);
+                               cOX, page.textureY(y + oY), oX, oY, dY);
         }
 
         Log.d(TAG, "j: "+j+"  count:"+count);
         if (j < count) {
-            if (y != height) {
-                float x1 = mKValue * d2oY;
+            if (Math.abs(y) != height && j > 0) {
+                float y1 = (dY - oY);
+                float x1 = mKValue * y1;
+                Log.d(TAG, "k: "+mKValue+"x1: "+x1+" y:"+y1);
+                computeFrontVertex(true, x1, 0, xFoldP1, sinA, cosA,
+                                   baseWcosA, baseWsinA,
+                                   page.textureX(x1 + oX), cOY, oX, oY, dY);
+
+                /*
                 computeFrontVertex(x1, 0, xFoldP1, sinA, cosA,
                                    baseWcosA,
                                    page.textureX(x1 + oX), cOY, oX, oY, dY);
-                computeFrontVertex(0, d2oY, xFoldP1, sinA, cosA, baseWcosA,
-                                   cOX, cDY, oX, oY, dY) ;
+                                   */
+                computeFrontVertex(0, y1, xFoldP1, sinA, cosA, baseWcosA,
+                                   cOX, page.textureY(y1+oY), oX, oY, dY) ;
             }
 
-            float lastX = mFoldFrontVertexes.mVertexes[3];
-            //mFoldFrontBaseShadow.addVertexes(false, lastX, dY, lastX + baseWcosA, dY);
-
-            //Log.d(TAG, "x1: "+lastX+"  x2:"+(lastX+baseWcosA)+"  y:"+dY+"  c:"+mFoldFrontBaseShadow.mBackward);
-            float bx = mKValue * (mYFoldP.y - baseW/sinA - dY) + oX;
-            if (bx < 200) {
-               Log.d(TAG, "bx < 200");
-            }
-            /*
-            int k = mFoldFrontBaseShadow.mMaxBackward;
-            float xbx = mFoldFrontBaseShadow.mVertexes[k];
-            float xby = mFoldFrontBaseShadow.mVertexes[k+1];
-            float bx1 = xbx + mKValue * (xby - dY);
-            xbx = mFoldFrontBaseShadow.mVertexes[k+4];
-            xby = mFoldFrontBaseShadow.mVertexes[k+5];
-            float bx2 = xbx + mKValue * (xby - dY);
-            mFoldFrontBaseShadow.addVertexes(false, bx1, dY, bx2, dY);
-            */
-
-            if (j == 0) {
+            if (j==0) {
                 computeBaseShadowTurningPoint(mYFoldP.y - stepY, xFoldP1, sinA, cosA, baseW, oX, oY, dY);
             }
 
+            boolean once = true;
             for (; j < count; ++j, x -= stepX, y -= stepY) {
                 computeFrontVertex(true, x, 0, xFoldP1, sinA, cosA,
                                    baseWcosA, baseWsinA,
-                                   page.textureX(x + oX), cOY, oX, oY);
-                float x1 = mKValue * (y + oY - dY);
-                computeFrontVertex(x1, d2oY, xFoldP1, sinA, cosA, baseWcosA,
-                                   page.textureX(x1 + oX), cDY, oX, oY, dY);
+                                   page.textureX(x + oX), cOY, oX, oY, dY);
+
+                if (once) {
+                    computeFrontVertex(false, 0, y, xFoldP1, sinA, cosA,
+                                       baseWcosA, baseWsinA,
+                                       cOX, page.textureY(y + oY), oX, oY, dY);
+                    once = false;
+                }
+                else {
+                    float x1 = mKValue * (y + oY - dY);
+                    computeFrontVertex(x1, d2oY, xFoldP1, sinA, cosA, baseWcosA,
+                                       page.textureX(x1 + oX), cDY, oX, oY, dY);
+                }
+                /*
+                computeFrontVertex(false, 0, y, xFoldP1, sinA, cosA,
+                                   baseWcosA, baseWsinA,
+                                   cOX, page.textureY(y + oY), oX, oY, dY);
+                                   */
             }
 
         }
