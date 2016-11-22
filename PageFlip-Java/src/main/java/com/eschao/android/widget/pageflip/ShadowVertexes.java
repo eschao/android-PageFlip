@@ -213,16 +213,14 @@ class ShadowVertexes {
      */
     public ShadowVertexes addVertexesForward(float startX, float startY,
                                              float endX, float endY) {
-        if (mForward - mMaxBackward < 8) {
-            mVertexes[mForward++] = startX;
-            mVertexes[mForward++] = startY;
-            mVertexes[mForward++] = mColor.startColor;
-            mVertexes[mForward++] = mColor.startAlpha;
-            mVertexes[mForward++] = endX;
-            mVertexes[mForward++] = endY;
-            mVertexes[mForward++] = mColor.endColor;
-            mVertexes[mForward++] = mColor.endAlpha;
-        }
+        mVertexes[mForward++] = startX;
+        mVertexes[mForward++] = startY;
+        mVertexes[mForward++] = mColor.startColor;
+        mVertexes[mForward++] = mColor.startAlpha;
+        mVertexes[mForward++] = endX;
+        mVertexes[mForward++] = endY;
+        mVertexes[mForward++] = mColor.endColor;
+        mVertexes[mForward++] = mColor.endAlpha;
         return this;
     }
 

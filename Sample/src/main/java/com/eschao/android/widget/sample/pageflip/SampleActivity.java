@@ -184,7 +184,7 @@ public class SampleActivity extends Activity implements OnGestureListener {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_UP) {
-            //mPageFlipView.onFingerUp(event.getX(), event.getY());
+            mPageFlipView.onFingerUp(event.getX(), event.getY());
             return true;
         }
 

@@ -84,13 +84,13 @@ public class PageFlip {
 
     // fold edge shadow color
     private final static float FOLD_EDGE_SHADOW_START_COLOR = 0.1f;
-    private final static float FOLD_EDGE_SHADOW_START_ALPHA = 0.2f;
+    private final static float FOLD_EDGE_SHADOW_START_ALPHA = 0.25f;
     private final static float FOLD_EDGE_SHADOW_END_COLOR = 0.3f;
     private final static float FOLD_EDGE_SHADOW_END_ALPHA = 0f;
 
     // fold base shadow color
     private final static float FOLD_BASE_SHADOW_START_COLOR = 0.05f;
-    private final static float FOLD_BASE_SHADOW_START_ALPHA = 0.25f;
+    private final static float FOLD_BASE_SHADOW_START_ALPHA = 0.4f;
     private final static float FOLD_BASE_SHADOW_END_COLOR = 0.3f;
     private final static float FOLD_BASE_SHADOW_END_ALPHA = 0f;
 
@@ -719,9 +719,13 @@ public class PageFlip {
                     return false;
                 }
 
-                dy = (float)Math.sqrt(dy2);
+                double t = Math.sqrt(dy2);
                 if (originP.y > 0) {
-                    dy = -dy;
+                    t = -t;
+                    dy = (int)Math.ceil(t);
+                }
+                else {
+                    dy = (int)Math.floor(t);
                 }
             }
 
@@ -1100,7 +1104,7 @@ public class PageFlip {
         // 3. draw edge and base shadow of fold parts
         glUseProgram(mShadowVertexProgram.hProgram);
         mFoldFrontBaseShadow.draw(mShadowVertexProgram);
-        //mFoldBackEdgesShadow.draw(mShadowVertexProgram);
+        mFoldBackEdgesShadow.draw(mShadowVertexProgram);
     }
 
     /**
@@ -1440,16 +1444,29 @@ public class PageFlip {
         mFoldFrontVertexes.addVertex(cx, cy, cz, coordX, coordY);
         mFoldFrontBaseShadow.addVertexes(isX, cx, cy,
                                          cx + baseWcosA, cy - baseWsinA);
-        if (!isX) {
-            float k = cx + mKValue * (cy - dY);
-            Log.d(TAG, "v:(" + cx + ", " + cy + ", " + cz+")  ("+x0+", "+y0+") x:"+k);
-        }
     }
 
+    /**
+     * Compute front vertex
+     * <p>The difference with another
+     * {@link #computeFrontVertex(boolean, float, float, float, float, float,
+     * float, float, float, float, float, float, float)} is that it won't
+     * compute base shadow vertex</p>
+     *
+     * @param x0 x of point on axis
+     * @param y0 y of point on axis
+     * @param tX x of xFoldP1 point in rotated coordinate system
+     * @param sinA sin value of page curling angle
+     * @param cosA cos value of page curling angel
+     * @param coordX x of texture coordinate
+     * @param coordY y of texture coordinate
+     * @param oX x of originate point
+     * @param oY y of originate point
+     */
     private void computeFrontVertex(float x0, float y0, float tX,
-                                    float sinA, float cosA, float baseX,
+                                    float sinA, float cosA,
                                     float coordX, float coordY,
-                                    float oX, float oY, float dY) {
+                                    float oX, float oY) {
         // rotate degree A
         float x = x0 * cosA - y0 * sinA;
         float y = x0 * sinA + y0 * cosA;
@@ -1463,50 +1480,80 @@ public class PageFlip {
         float cx = x * cosA + y * sinA + oX;
         float cy = y * cosA - x * sinA + oY;
         mFoldFrontVertexes.addVertex(cx, cy, cz, coordX, coordY);
-        Log.d(TAG, "v:(" + cx + ", " + cy + ", " + cz+")  ("+x0+", "+y0+") k:"+mKValue);
-        //mFoldFrontBaseShadow.addVertexes(false, cx, cy,
-        //                                 cx + baseWcosA, cy);
-        //Log.d(TAG, "cx: "+cx);
-    }
-
-    private void computeBaseShadowTurningPoint(float py, float tX, float sinA, float cosA,
-                                               float baseW, float oX, float oY,
-                                               float dY) {
-        /*
-        float x0 = mKValue * (py - dY);
-        float y0 = dY - oY;
-        float x1 = x0 * cosA - y0 * sinA;
-        float y1 = x0 * sinA + y0 * cosA;
-        // compute mapping point on cylinder
-        float rad = (x1 - tX)/ mR;
-        x1 = (float)(tX + mR * Math.sin(rad));
-
-        // rotate degree -A, sin(-A) = -sin(A), cos(-A) = cos(A)
-        float cx1 = x1 * cosA + y1 * sinA + oX;
-        float cx2 = cx1 + baseW / cosA;
-        */
-
-        int i = mFoldFrontBaseShadow.mMaxBackward;
-        float fx1 = mFoldFrontBaseShadow.mVertexes[i];
-        float fy1 = mFoldFrontBaseShadow.mVertexes[i+1];
-        float fx2 = mFoldFrontBaseShadow.mVertexes[i+4];
-        float fy2 = mFoldFrontBaseShadow.mVertexes[i+5];
-
-        float bx1 = fx1 + mKValue * (fy1 - dY);
-        float bx2 = fx2 + mKValue * (fy2 - dY);
-        //Log.d(TAG, " x1: "+cx1+"   x2:"+cx2);
-        /*
-        Log.d(TAG, "bx1: "+bx1+"  bx2:"+bx2);
-        Log.d(TAG, "x3: "+mFoldFrontBaseShadow.mVertexes[i]+"  y3:"+mFoldFrontBaseShadow.mVertexes[i+1]);
-        Log.d(TAG, "x4: "+mFoldFrontBaseShadow.mVertexes[i+4]+"  y3:"+mFoldFrontBaseShadow.mVertexes[i+5]);
-        Log.d(TAG, "mKValue: "+mKValue+" sinA:"+sinA+" cosA:"+cosA);
-        */
-
-        //mFoldFrontBaseShadow.addVertexes(false, bx1, dY, bx2, dY);
     }
 
     /**
-     * Compute vertexes when page flip is slope
+     * Compute start vertex of base shadow(backward direction)
+     * <p>
+     * The vertexes of base shadow are composed by two part: forward and
+     * backward part. Forward vertexes are computed from XFold points and
+     * backward vertexes are computed from YFold points. The reason why we use
+     * forward and backward is because how to change float buffer index when we
+     * add a new vertex to buffer. Backward means the index is declined from
+     * buffer middle position to the head, in contrast, the forward is
+     * increasing index from middle to the tail. This design will help keep
+     * float buffer consecutive and to be draw at a time.
+     * </p><p>
+     * Sometimes, the whole or part of YFold points will be out of page, that
+     * means their Y coordinate are greater than page height(diagonal.y). In
+     * this case, we have to crop them like cropping line on 2D coordinate
+     * system. If delve further, we can conclude that we only need to compute
+     * the first start/end vertexes which is falling on the border line of
+     * diagonal.y since other backward vertexes must be out of page and could
+     * not be seen, and then combine these vertexes with forward vertexes to
+     * render base shadow.
+     * </p><p>
+     * This function is just used to compute the couple vertexes.
+     * </p>
+     *
+     * @param x0 x of point on axis
+     * @param y0 y of point on axis
+     * @param tX x of xFoldP1 point in rotated coordinate system
+     * @param sinA sin value of page curling angle
+     * @param cosA cos value of page curling angel
+     * @param baseWcosA base shadow width * cosA
+     * @param baseWsinA base shadow width * sinA
+     * @param oX x of originate point
+     * @param oY y of originate point
+     * @param dY y of diagonal point
+     */
+    private void computeBaseShadowStartVertex(float x0, float y0, float tX,
+                                              float sinA, float cosA,
+                                              float baseWcosA, float baseWsinA,
+                                              float oX, float oY, float dY) {
+        // like computing front vertex, we firstly compute the mapping vertex
+        // on fold cylinder for point (x0, y0) which also is start vertex of
+        // base shadow(backward direction)
+        float x = x0 * cosA - y0 * sinA;
+        float y = x0 * sinA + y0 * cosA;
+
+        // compute mapping point on cylinder
+        float rad = (x - tX)/ mR;
+        x = (float)(tX + mR * Math.sin(rad));
+
+        float cx1 = x * cosA + y * sinA + oX;
+        float cy1 = y * cosA - x * sinA + oY;
+
+        // now, we have start vertex(cx1, cy1), compute end vertex(cx2, cy2)
+        // which is translated based on start vertex(cx1, cy1)
+        float cx2 = cx1 + baseWcosA;
+        float cy2 = cy1 - baseWsinA;
+
+        // as we know, this function is only used to compute start vertex of
+        // base shadow(backward) when the YFold points are out of page height,
+        // that means the (cx1, cy1) and (cx2, cy2) we computed above normally
+        // is out of page, so we need to compute their projection points on page
+        // border as rendering vertex of base shadow
+        float bx1 = cx1 + mKValue * (cy1 - dY);
+        float bx2 = cx2 + mKValue * (cy2 - dY);
+
+        // add start/end vertex into base shadow buffer, it will be linked with
+        // forward vertexes to draw base shadow
+        mFoldFrontBaseShadow.addVertexes(false, bx1, dY, bx2, dY);
+    }
+
+    /**
+     * Compute vertexes when page flip is slop
      */
     private void computeVertexesWhenSlope() {
         final Page page = mPages[FIRST_PAGE];
@@ -1563,7 +1610,6 @@ public class PageFlip {
 
         if (i <= count) {
             if (Math.abs(y) != height) {
-                /*
                 if (Math.abs(mYFoldP0.y - oY) > height) {
                     float tx = oX + 2 * mKValue * (mYFoldP.y - dY);
                     float ty = dY + mKValue * (tx - oX);
@@ -1573,13 +1619,12 @@ public class PageFlip {
                     mFoldBackEdgesShadow.addVertexes(false, tx, ty, tsx, tsy);
                 }
                 else {
-                */
                     float x1 = mKValue * d2oY;
                     computeBackVertex(true, x1, 0, x1, sy, xFoldP1, sinA, cosA,
                                       page.textureX(x1 + oX), cOY, oX, oY);
                     computeBackVertex(false, 0, d2oY, sx, d2oY, xFoldP1, sinA,
-                                      cosA, cOX, cDY, oX, oY) ;
-                //}
+                                      cosA, cOX, cDY, oX, oY);
+                }
             }
 
             for (; i <= count;
@@ -1609,51 +1654,30 @@ public class PageFlip {
                                cOX, page.textureY(y + oY), oX, oY, dY);
         }
 
-        Log.d(TAG, "j: "+j+"  count:"+count);
         if (j < count) {
             if (Math.abs(y) != height && j > 0) {
                 float y1 = (dY - oY);
                 float x1 = mKValue * y1;
-                Log.d(TAG, "k: "+mKValue+"x1: "+x1+" y:"+y1);
                 computeFrontVertex(true, x1, 0, xFoldP1, sinA, cosA,
                                    baseWcosA, baseWsinA,
                                    page.textureX(x1 + oX), cOY, oX, oY, dY);
 
-                /*
-                computeFrontVertex(x1, 0, xFoldP1, sinA, cosA,
-                                   baseWcosA,
-                                   page.textureX(x1 + oX), cOY, oX, oY, dY);
-                                   */
-                computeFrontVertex(0, y1, xFoldP1, sinA, cosA, baseWcosA,
-                                   cOX, page.textureY(y1+oY), oX, oY, dY) ;
+                computeFrontVertex(0, y1, xFoldP1, sinA, cosA, cOX,
+                                   page.textureY(y1+oY), oX, oY) ;
             }
 
-            if (j==0) {
-                computeBaseShadowTurningPoint(mYFoldP.y - stepY, xFoldP1, sinA, cosA, baseW, oX, oY, dY);
-            }
+            computeBaseShadowStartVertex(0, y, xFoldP1, sinA, cosA,
+                                         baseWcosA, baseWsinA,
+                                         oX, oY, dY);
 
-            boolean once = true;
             for (; j < count; ++j, x -= stepX, y -= stepY) {
                 computeFrontVertex(true, x, 0, xFoldP1, sinA, cosA,
                                    baseWcosA, baseWsinA,
                                    page.textureX(x + oX), cOY, oX, oY, dY);
 
-                if (once) {
-                    computeFrontVertex(false, 0, y, xFoldP1, sinA, cosA,
-                                       baseWcosA, baseWsinA,
-                                       cOX, page.textureY(y + oY), oX, oY, dY);
-                    once = false;
-                }
-                else {
-                    float x1 = mKValue * (y + oY - dY);
-                    computeFrontVertex(x1, d2oY, xFoldP1, sinA, cosA, baseWcosA,
-                                       page.textureX(x1 + oX), cDY, oX, oY, dY);
-                }
-                /*
-                computeFrontVertex(false, 0, y, xFoldP1, sinA, cosA,
-                                   baseWcosA, baseWsinA,
-                                   cOX, page.textureY(y + oY), oX, oY, dY);
-                                   */
+                float x1 = mKValue * (y + oY - dY);
+                computeFrontVertex(x1, d2oY, xFoldP1, sinA, cosA,
+                                   page.textureX(x1 + oX), cDY, oX, oY);
             }
 
         }

@@ -1,1 +1,1 @@
-include ':Sample', ':PageFlip'
+include ':Sample', ':PageFlip-Java'
