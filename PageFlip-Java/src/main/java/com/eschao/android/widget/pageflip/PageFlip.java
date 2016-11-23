@@ -277,12 +277,12 @@ public class PageFlip {
 
     /**
      * Enable/disable auto page mode
-     * <pre>
+     * <p>
      * The default value is single page mode, which means there is only one page
      * no matter what the screen is portrait or landscape. If set mode with auto
      * page, it will automatically detect screen mode and choose single or
      * double pages to render the whole screen.
-     * </pre>
+     * </p>
      *
      * @param isAuto true if set mode with auto page
      * @return true if pages are recreated and need to render page
@@ -317,11 +317,11 @@ public class PageFlip {
 
     /**
      * Enable/disable clicking to flip page
-     * <pre>
-     *  By default, the page flipping will only be triggered by finger.
-     *  Through this function to enable clicking, you can start flipping
-     *  page with finger click.
-     * </pre>
+     * <p>
+     * By default, the page flipping will only be triggered by finger.
+     * Through this function to enable clicking, you can start flipping
+     * page with finger click.
+     * </p>
      *
      * @param enable true if enable it
      * @return self
@@ -333,10 +333,10 @@ public class PageFlip {
 
     /**
      * Set listener for page flip
-     * <pre>
+     * <p>
      * Set a page flip listener to determine if page can flip forward or
      * backward
-     * </pre>
+     * </p>
      *
      * @param listener a listener for page flip
      * @return
@@ -370,13 +370,13 @@ public class PageFlip {
 
     /**
      * Set ratio of semi-perimeter of fold cylinder
-     * <pre>
+     * <p>
      * When finger is clicking and moving on page, the page from touch point to
      * original point will be curled like as a cylinder, the radius of cylinder
      * is determined by line length from touch point to original point. You can
      * give a ratio of this line length to set cylinder radius, the default
      * value is 0.8
-     * </pre>
+     * </p>
      *
      * @param ratio ratio of line length from touch point to original point. Its
      *              value is (0..1]
@@ -393,7 +393,7 @@ public class PageFlip {
 
     /**
      * Set mask alpha for back of fold page
-     * <pre>Mask alpha will be invalid in double pages</pre>
+     * <p>Mask alpha will be invalid in double pages</p>
      *
      * @param alpha alpha value is in [0..255]
      * @return self
@@ -744,7 +744,7 @@ public class PageFlip {
     }
 
     /**
-     * Handles finger up event
+     * Handle finger up event
      *
      * @param touchX x of finger moving point
      * @param touchY y of finger moving point
@@ -1161,7 +1161,7 @@ public class PageFlip {
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         GLUtils.texImage2D(GL_TEXTURE_2D, 0, shadow, 0);
         shadow.recycle();
-	}
+    }
 
     /**
      * Compute vertexes of page
@@ -1178,7 +1178,7 @@ public class PageFlip {
     }
 
     /**
-     * Compute key vertexes when page turning is vertical
+     * Compute key vertexes when page flip is vertical
      */
     private void computeKeyVertexesWhenVertical() {
         final float oX = mPages[FIRST_PAGE].originP.x ;
@@ -1212,9 +1212,8 @@ public class PageFlip {
      * Compute all vertexes when page flip is vertical
      */
     private void computeVertexesWhenVertical() {
-        int count = mMeshCount;// >> 1;
         float x = mMiddleP.x;
-        float stepX = (mMiddleP.x - mXFoldP0.x) / count;
+        float stepX = (mMiddleP.x - mXFoldP0.x) / mMeshCount;
 
         final Page page = mPages[FIRST_PAGE];
         final float oY = page.originP.y;
@@ -1226,7 +1225,7 @@ public class PageFlip {
         // compute the point on back page half cylinder
         mFoldBackVertexes.reset();
 
-        for (int i = 0; i <= count; ++i, x -= stepX) {
+        for (int i = 0; i <= mMeshCount; ++i, x -= stepX) {
             // compute radian of x point
             float x2t = x - mXFoldP1.x;
             float radius = x2t / mR;
@@ -1308,22 +1307,28 @@ public class PageFlip {
 
     /**
      * Compute back vertex and edge shadow vertex of fold page
-     * <pre>
+     * <p>
      * In 2D coordinate system, for every vertex on fold page, we will follow
      * the below steps to compute its 3D point (x,y,z) on curled page(cylinder):
-     * 1. Deem originP as (0, 0) to simplify the next computing steps
-     * 2. translate point(x, y) to new coordinate system (originP is (0, 0))
-     * 3. rotate point(x, y) with curling angle A in clockwise
-     * 4. compute 3d point (x, y, z) for 2d point(x, y), at this time, the
-     *    cylinder is vertical in new coordinate system which will help us
-     *    compute point
-     * 5. rotate 3d point (x, y, z) with -A to restore
-     * 6. translate 3d point (x, y, z) to original coordinate system
+     * </p>
+     * <ul>
+     *     <li>deem originP as (0, 0) to simplify the next computing steps</li>
+     *     <li>translate point(x, y) to new coordinate system
+     *     (originP is (0, 0))</li>
+     *     <li>rotate point(x, y) with curling angle A in clockwise</li>
+     *     <li>compute 3d point (x, y, z) for 2d point(x, y), at this time, the
+     *     cylinder is vertical in new coordinate system which will help us
+     *     compute point</li>
+     *     <li>rotate 3d point (x, y, z) with -A to restore</li>
+     *     <li>translate 3d point (x, y, z) to original coordinate system</li>
+     * </ul>
      *
-     * For point of edge shadow, the most computing steps are same but:
-     * 1. shadow point is following the page point except different x coordinate
-     * 2. shadow point has same z coordinate with the page point
-     * </pre>
+     * <p>For point of edge shadow, the most computing steps are same but:</p>
+     * <ul>
+     *     <li>shadow point is following the page point except different x
+     *     coordinate</li>
+     *     <li>shadow point has same z coordinate with the page point</li>
+     * </ul>
      *
      * @param isX is vertex for x point on x axis or y point on y axis?
      * @param x0 x of point on axis
@@ -1371,10 +1376,10 @@ public class PageFlip {
 
     /**
      * Compute back vertex of fold page
-     * <pre>
+     * <p>
      * Almost same with another computeBackVertex function except expunging the
      * shadow point part
-     * </pre>
+     * </p>
      *
      * @param x0 x of point on axis
      * @param y0 y of point on axis
@@ -1483,7 +1488,7 @@ public class PageFlip {
     }
 
     /**
-     * Compute start vertex of base shadow(backward direction)
+     * Compute last vertex of base shadow(backward direction)
      * <p>
      * The vertexes of base shadow are composed by two part: forward and
      * backward part. Forward vertexes are computed from XFold points and
@@ -1517,12 +1522,12 @@ public class PageFlip {
      * @param oY y of originate point
      * @param dY y of diagonal point
      */
-    private void computeBaseShadowStartVertex(float x0, float y0, float tX,
-                                              float sinA, float cosA,
-                                              float baseWcosA, float baseWsinA,
-                                              float oX, float oY, float dY) {
+    private void computeBaseShadowLastVertex(float x0, float y0, float tX,
+                                             float sinA, float cosA,
+                                             float baseWcosA, float baseWsinA,
+                                             float oX, float oY, float dY) {
         // like computing front vertex, we firstly compute the mapping vertex
-        // on fold cylinder for point (x0, y0) which also is start vertex of
+        // on fold cylinder for point (x0, y0) which also is last vertex of
         // base shadow(backward direction)
         float x = x0 * cosA - y0 * sinA;
         float y = x0 * sinA + y0 * cosA;
@@ -1539,7 +1544,7 @@ public class PageFlip {
         float cx2 = cx1 + baseWcosA;
         float cy2 = cy1 - baseWsinA;
 
-        // as we know, this function is only used to compute start vertex of
+        // as we know, this function is only used to compute last vertex of
         // base shadow(backward) when the YFold points are out of page height,
         // that means the (cx1, cy1) and (cx2, cy2) we computed above normally
         // is out of page, so we need to compute their projection points on page
@@ -1553,7 +1558,7 @@ public class PageFlip {
     }
 
     /**
-     * Compute vertexes when page flip is slop
+     * Compute vertexes when page flip is slope
      */
     private void computeVertexesWhenSlope() {
         final Page page = mPages[FIRST_PAGE];
@@ -1599,6 +1604,21 @@ public class PageFlip {
         float sx = edgeX;
         float sy = edgeY;
 
+        // for every point on XFold, there are 3 cases:
+        //
+        //   <---- Flip
+        // +-------------+ diagonalP
+        // |             |
+        // |             + YFP
+        // |            /|
+        // |           / |
+        // |          /  |
+        // |         /   |
+        // |        /    + YFP0
+        // |       / p  /|
+        // +------+--.-+-+ originP
+        //      XFP     XFP0
+        //
         int i = 0;
         for (;i <= count && Math.abs(y) < height;
              ++i, x -= stepX, y -= stepY, sy -= stepSY, sx -= stepSX) {
@@ -1666,9 +1686,9 @@ public class PageFlip {
                                    page.textureY(y1+oY), oX, oY) ;
             }
 
-            computeBaseShadowStartVertex(0, y, xFoldP1, sinA, cosA,
-                                         baseWcosA, baseWsinA,
-                                         oX, oY, dY);
+            computeBaseShadowLastVertex(0, y, xFoldP1, sinA, cosA,
+                                        baseWcosA, baseWsinA,
+                                        oX, oY, dY);
 
             for (; j < count; ++j, x -= stepX, y -= stepY) {
                 computeFrontVertex(true, x, 0, xFoldP1, sinA, cosA,
