@@ -27,4 +27,5 @@
             </group>
         </menu>
     </item>
+    <item android:id="@+id/about_menu" android:title="About PageFlip"/>
 </menu>

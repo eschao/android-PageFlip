@@ -3,14 +3,13 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
-        <option name="distributionType" value="LOCAL" />
+        <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleHome" value="$APPLICATION_HOME_DIR$/gradle/gradle-2.14.1" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/PageFlip-Java" />
-            <option value="$PROJECT_DIR$/Sample" />
+            <option value="/Volumes/Data/github/android-PageFlip" />
+            <option value="/Volumes/Data/github/android-PageFlip/PageFlip-Java" />
+            <option value="/Volumes/Data/github/android-PageFlip/Sample" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

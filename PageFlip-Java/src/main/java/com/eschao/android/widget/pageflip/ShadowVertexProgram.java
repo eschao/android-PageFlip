@@ -23,7 +23,7 @@ import static android.opengl.GLES20.glGetUniformLocation;
 /**
  * Shadow vertex shader program which is used to load:
  * <ul>
- *     <li>shadow_vertex_sbader.glsl</li>
+ *     <li>shadow_vertex_shader.glsl</li>
  *     <li>shadow_fragment_shader.glsl</li>
  * </ul>
  *

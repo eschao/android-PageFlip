@@ -1053,11 +1053,11 @@ public class PageFlip {
 
     /**
      * Get the second page
-     * <pre>
+     * <p>
      * Second page is only valid in double page mode, if it is null, that means
      * there is only one page for whole screen whatever the screen is portrait
      * or landscape
-     * </pre>
+     * </p>
      *
      * @return the second page, null if no second page
      */
@@ -1604,7 +1604,8 @@ public class PageFlip {
         float sx = edgeX;
         float sy = edgeY;
 
-        // for every point on XFold, there are 3 cases:
+        // compute point of back of fold page
+        // Case 1: y coordinate of point YFP0 -> YFP is < diagonalP.y
         //
         //   <---- Flip
         // +-------------+ diagonalP
@@ -1617,8 +1618,14 @@ public class PageFlip {
         // |        /    + YFP0
         // |       / p  /|
         // +------+--.-+-+ originP
-        //      XFP     XFP0
+        //      XFP   XFP0
         //
+        // 1. XFP -> XFP0 -> originP -> YFP0 ->YFP is back of fold page
+        // 2. XFP -> XFP0 -> YFP0 -> YFP is a half of cylinder when page is
+        //    curled
+        // 3. P point will be computed
+        //
+        // compute points within the page
         int i = 0;
         for (;i <= count && Math.abs(y) < height;
              ++i, x -= stepX, y -= stepY, sy -= stepSY, sx -= stepSX) {
@@ -1628,8 +1635,25 @@ public class PageFlip {
                               page.textureY(y + oY), oX, oY);
         }
 
+        // If y coordinate of point on YFP0 -> YFP is > diagonalP
+        // There are two cases:
+        //                      <---- Flip
+        //     Case 2                               Case 3
+        //          YFP                               YFP   YFP0
+        // +---------+---+ diagonalP          +--------+-----+--+ diagonalP
+        // |        /    |                    |       /     /   |
+        // |       /     + YFP0               |      /     /    |
+        // |      /     /|                    |     /     /     |
+        // |     /     / |                    |    /     /      |
+        // |    /     /  |                    |   /     /       |
+        // |   / p   /   |                    |  / p   /        |
+        // +--+--.--+----+ originalP          +-+--.--+---------+ originalP
+        //   XFP   XFP0                        XFP   XFP0
+        //
+        // compute points outside the page
         if (i <= count) {
             if (Math.abs(y) != height) {
+                // case 3: compute mapping point of diagonalP
                 if (Math.abs(mYFoldP0.y - oY) > height) {
                     float tx = oX + 2 * mKValue * (mYFoldP.y - dY);
                     float ty = dY + mKValue * (tx - oX);
@@ -1638,6 +1662,7 @@ public class PageFlip {
                     float tsy = dY + mKValue * (tsx - oX);
                     mFoldBackEdgesShadow.addVertexes(false, tx, ty, tsx, tsy);
                 }
+                // case 2: compute mapping point of diagonalP
                 else {
                     float x1 = mKValue * d2oY;
                     computeBackVertex(true, x1, 0, x1, sy, xFoldP1, sinA, cosA,
@@ -1647,10 +1672,15 @@ public class PageFlip {
                 }
             }
 
+            // compute the remaining points
             for (; i <= count;
                  ++i, x -= stepX, y -= stepY, sy -= stepSY, sx -= stepSX) {
                 computeBackVertex(true, x, 0, x, sy, xFoldP1, sinA, cosA,
                                   page.textureX(x + oX), cOY, oX, oY);
+
+                // since the origin Y is beyond page, we need to compute its
+                // projection point on page border and then compute mapping
+                // point on curled cylinder
                 float x1 = mKValue * (y + oY - dY);
                 computeBackVertex(x1, d2oY, xFoldP1, sinA, cosA,
                                   page.textureX(x1 + oX), cDY, oX, oY);
@@ -1659,7 +1689,33 @@ public class PageFlip {
 
         mFoldBackVertexes.toFloatBuffer();
 
-        // compute vertexes for front fold
+        // Like above computation, the below steps are computing vertexes of
+        // front of fold page
+        // Case 1: y coordinate of point YFP -> YFP1 is < diagonalP.y
+        //
+        //     <---- Flip
+        // +----------------+ diagonalP
+        // |                |
+        // |                + YFP1
+        // |               /|
+        // |              / |
+        // |             /  |
+        // |            /   |
+        // |           /    + YFP
+        // |          /    /|
+        // |         /    / |
+        // |        /    /  + YFP0
+        // |       /    /  /|
+        // |      / p  /  / |
+        // +-----+--.-+--+--+ originP
+        //    XFP1  XFP  XFP0
+        //
+        // 1. XFP -> YFP -> YFP1 ->XFP1 is front of fold page and a half of
+        //    cylinder when page is curled.
+        // 2. YFP->XFP is joint line of front and back of fold page
+        // 3. P point will be computed
+        //
+        // compute points within the page
         stepX = (mXFoldP.x - mXFoldP1.x) / count;
         stepY = (mYFoldP.y - mYFoldP1.y) / count;
         x = mXFoldP.x - oX - stepX;
@@ -1674,7 +1730,9 @@ public class PageFlip {
                                cOX, page.textureY(y + oY), oX, oY, dY);
         }
 
+        // compute points outside the page
         if (j < count) {
+            // compute mapping point of diagonalP
             if (Math.abs(y) != height && j > 0) {
                 float y1 = (dY - oY);
                 float x1 = mKValue * y1;
@@ -1686,10 +1744,12 @@ public class PageFlip {
                                    page.textureY(y1+oY), oX, oY) ;
             }
 
+            // compute last pair of vertexes of base shadow
             computeBaseShadowLastVertex(0, y, xFoldP1, sinA, cosA,
                                         baseWcosA, baseWsinA,
                                         oX, oY, dY);
 
+            // compute the remaining points
             for (; j < count; ++j, x -= stepX, y -= stepY) {
                 computeFrontVertex(true, x, 0, xFoldP1, sinA, cosA,
                                    baseWcosA, baseWsinA,
@@ -1720,7 +1780,7 @@ public class PageFlip {
 
     /**
      * Compute vertexes of fold top edge shadow
-     * <p>>Top edge shadow of fold page is a quarter circle</p>
+     * <p>Top edge shadow of fold page is a quarter circle</p>
      *
      * @param x0 X of touch point
      * @param y0 Y of touch point

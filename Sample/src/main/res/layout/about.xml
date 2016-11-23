@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    tools:context="com.eschao.android.widget.sample.pageflip.SampleActivity"
+>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:paddingTop="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:text="@string/about_mesh_pixels"
+        android:textColor="@android:color/white"/>
+
+    <TextView
+        android:id="@+id/about_codes"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="20dip"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:textSize="16sp"
+        android:text="@string/about_codes"
+        android:autoLink="web"
+        android:textColor="@android:color/white"/>
+
+    <TextView
+        android:id="@+id/about_contact"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="20dip"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="10dp"
+        android:textSize="16sp"
+        android:text="@string/about_contact"
+        android:autoLink="email"
+        android:textColor="@android:color/white"/>
+
+</LinearLayout>

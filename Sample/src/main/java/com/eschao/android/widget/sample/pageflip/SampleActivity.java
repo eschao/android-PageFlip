@@ -16,12 +16,15 @@
 package com.eschao.android.widget.sample.pageflip;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Build;
 import android.os.Bundle;
 
 import android.preference.PreferenceManager;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.view.GestureDetector;
 
 import android.view.GestureDetector.OnGestureListener;
@@ -31,6 +34,7 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 /**
  * Sample Activity
@@ -168,6 +172,9 @@ public class SampleActivity extends Activity implements OnGestureListener {
                 mPageFlipView.setPixelsOfMesh(20);
                 editor.putInt(Constants.PREF_MESH_PIXELS, 20);
                 break;
+            case R.id.about_menu:
+                showAbout();
+                return true;
             default:
                 isHandled = false;
                 break;
@@ -221,5 +228,23 @@ public class SampleActivity extends Activity implements OnGestureListener {
 
     public boolean onSingleTapUp(MotionEvent e) {
         return false;
+    }
+
+    private void showAbout() {
+        View aboutView = getLayoutInflater().inflate(R.layout.about, null,
+                                                     false);
+
+        /*
+        TextView contactView = (TextView)aboutView.findViewById(
+                                                            R.id.about_contact);
+        contactView.setMovementMethod(LinkMovementMethod.getInstance());
+        */
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setIcon(R.mipmap.ic_launcher);
+        builder.setTitle(R.string.app_name);
+        builder.setView(aboutView);
+        builder.create();
+        builder.show();
     }
 }

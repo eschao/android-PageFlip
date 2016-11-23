@@ -46,12 +46,13 @@ import static android.opengl.GLES20.glVertexAttribPointer;
 
 /**
  * Page class
- * <pre>
+ * <p>
  * Page holds content textures and show them on screen. In single page mode, a
  * page represents the whole screen area. But in double pages mode, there are
  * two pages to depict the entire screen size, in the left part is called left
  * page and the right part is called right page.
  * Every page has the below properties:
+ * </p>
  * <ul>
  *     <li>Page size: left/right/top/bottom and width/height</li>
  *     <li>Holding 3 content textures for drawing:
@@ -69,12 +70,11 @@ import static android.opengl.GLES20.glVertexAttribPointer;
  *              set with a different texture and can be called the second 'Page'
  *              , at this time, the second texture will be called the third
  *              'Page' as like we're reading a book</li>
- *              <li>Every texture should be set with a bitmap by outer called
+ *              <li>Every texture should be set with a bitmap by outside caller
  *              </li>
  *          </ul>
  *     </li>
  * </ul>
- * </pre>
  *
  * @author eschao
  */
@@ -600,7 +600,7 @@ public class Page {
     /**
      * Build vertexes of page when page is flipping vertically
      * <pre>
-     *           <---- flip
+     *        <---- flip
      *     1        fY    2
      *     +--------#-----+
      *     |        |     |
@@ -608,16 +608,18 @@ public class Page {
      *     |        |     |
      *     +--------#-----+
      *     4        fX    3
-     *
-     *  1) Page is flipping from right -> left
-     *  2) Origin point: 3
-     *  3) Diagonal point: 1
-     *  4) xFoldP1.y: fY, xFoldP2.x: fX
-     *  5) Drawing front part with the first texture(GL_TRIANGLE_STRIP):
-     *      fX -> fY -> 4 -> 1
-     *  6) Drawing back part with the second texture(GL_TRIANGLE_STRIP):
-     *      3 -> 2 -> fX -> fY
      * </pre>
+     * <ul>
+     *      <li>Page is flipping from right -> left</li>
+     *      <li>Origin point: 3</li>
+     *      <li>Diagonal point: 1</li>
+     *      <li>xFoldP1.y: fY, xFoldP2.x: fX</li>
+     *      <li>Drawing front part with the first texture(GL_TRIANGLE_STRIP):
+     *      fX -> fY -> 4 -> 1</li>
+     *      <li>Drawing back part with the second texture(GL_TRIANGLE_STRIP):
+     *      3 -> 2 -> fX -> fY</li>
+     * </ul>
+     *
      * @param frontVertexes vertexes for drawing font part of page
      * @param xFoldP1 fold point on X axis
      */
@@ -699,23 +701,33 @@ public class Page {
      *     |        /   |      |    /         |      |            |
      *     +-------+----+      +---+----------+      +------------+
      *     4        xFx   3    4  xFx         3      4            3
-     *
-     *  1) Page is flipping from right -> left
-     *  2) Origin point: 3
-     *  3) Diagonal point: 1
-     *  4) xFoldP1.x: xFx, yFoldP1.y: yFy
-     *  6) Drawing case A (TRIANGLE_STRIP):
-     *      Second: 3 -> yFy -> xFx
-     *      First : yFy -> xFx -> 2 -> 4 -> 1
-     *  7) Drawing case B (TRIANGLE_STRIP):
-     *      Second: 3 -> 2 -> xFx -> yFy
-     *      First : xFx -> yFy -> 4 -> 1
-     *  8) Drawing case C (TRIANGLE_STRIP):
-     *      Second: 3 -> 2 -> 4 -> yFy -> xFx
-     *      First : yFy -> xFx -> 1
-     *  9) If yFy is out of page, that means xFx is also out and it will
-     *  degenerate to a normal full page drawing: 3 -> 2 -> 4 -> 1
      * </pre>
+     * <ul>
+     *      <li>Page is flipping from right -> left</li>
+     *      <li>Origin point: 3</li>
+     *      <li>Diagonal point: 1</li>
+     *      <li>xFoldP1.x: xFx, yFoldP1.y: yFy</li>
+     *      <li>Drawing case A (TRIANGLE_STRIP):
+     *      <ul>
+     *          <li>Second: 3 -> yFy -> xFx</li>
+     *          <li>First : yFy -> xFx -> 2 -> 4 -> 1</li>
+     *      </ul>
+     *      </li>
+     *      <li>Drawing case B (TRIANGLE_STRIP):
+     *      <ul>
+     *          <li>Second: 3 -> 2 -> xFx -> yFy</li>
+     *          <li>First : xFx -> yFy -> 4 -> 1</li>
+     *      </ul>
+     *      </li>
+     *      <li>Drawing case C (TRIANGLE_STRIP):
+     *      <ul>
+     *          <li>Second: 3 -> 2 -> 4 -> yFy -> xFx</li>
+     *          <li>First : yFy -> xFx -> 1</li>
+     *      </ul>
+     *      </li>
+     *      <li>If yFy is outside the page, that means xFx is also out and it
+     *      will degenerate to a normal full page drawing: 3 -> 2 -> 4 -> 1</li>
+     * </ul>
      *
      * @param frontVertexes vertexes for drawing front part of page
      * @param xFoldP1 fold point on X axis
@@ -855,12 +867,14 @@ public class Page {
      *     |              |
      *     +--------------+
      *     4              3
-     *
-     *  1) Page is flipping from right -> left
-     *  2) Origin point: 3
-     *  3) Diagonal point: 1
-     *  4) xFoldP1.y: fY, xFoldP2.x: fX
-     *  5) Drawing order: 3 -> 2 -> 4 -> 1
+     * </pre>
+     * <ul>
+     *      <li>Page is flipping from right -> left</li>
+     *      <li>Origin point: 3</li>
+     *      <li>Diagonal point: 1</li>
+     *      <li>xFoldP1.y: fY, xFoldP2.x: fX</li>
+     *      <li>Drawing order: 3 -> 2 -> 4 -> 1</li>
+     * </ul>
      */
     private void buildVertexesOfFullPage() {
         float vertexes[] = new float[12];

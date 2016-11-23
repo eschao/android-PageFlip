@@ -1,4 +1,14 @@
 <resources>
-    <string name="app_name">PageFlipSample</string>
-    <string name="title_activity_main">PageFlip-Sample</string>
+    <string name="app_name">PageFlip</string>
+    <string name="title_activity_main">PageFlip Demo</string>
+    <string name="about_mesh_pixels">
+        1. Changing "Mesh Pixels" will only take effect in next time!
+    </string>
+    <string name="about_codes">
+        2. The codes are under Apache License 2.0. You can get it from
+        https://github.com/eschao/android-PageFlip and freely use.
+    </string>
+    <string name="about_contact">
+        3. Any question please mailto: esc.chao@gmail.com or file issue in github.
+    </string>
 </resources>
