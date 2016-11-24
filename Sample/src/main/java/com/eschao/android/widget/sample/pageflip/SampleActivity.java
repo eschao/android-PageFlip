@@ -145,7 +145,7 @@ public class SampleActivity extends Activity implements OnGestureListener {
                 editor.putInt(Constants.PREF_DURATION, 2000);
                 break;
             case R.id.animation_5s:
-                mPageFlipView.setAnimateDuration(5000);
+                mPageFlipView.setAnimateDuration(25000);
                 editor.putInt(Constants.PREF_DURATION, 5000);
                 break;
             case R.id.auoto_page:
@@ -157,19 +157,15 @@ public class SampleActivity extends Activity implements OnGestureListener {
                 editor.putBoolean(Constants.PREF_PAGE_MODE, false);
                 break;
             case R.id.mesh_2p:
-                mPageFlipView.setPixelsOfMesh(2);
                 editor.putInt(Constants.PREF_MESH_PIXELS, 2);
                 break;
             case R.id.mesh_5p:
-                mPageFlipView.setPixelsOfMesh(5);
                 editor.putInt(Constants.PREF_MESH_PIXELS, 5);
                 break;
             case R.id.mesh_10p:
-                mPageFlipView.setPixelsOfMesh(10);
                 editor.putInt(Constants.PREF_MESH_PIXELS, 10);
                 break;
             case R.id.mesh_20p:
-                mPageFlipView.setPixelsOfMesh(20);
                 editor.putInt(Constants.PREF_MESH_PIXELS, 20);
                 break;
             case R.id.about_menu:
@@ -233,12 +229,6 @@ public class SampleActivity extends Activity implements OnGestureListener {
     private void showAbout() {
         View aboutView = getLayoutInflater().inflate(R.layout.about, null,
                                                      false);
-
-        /*
-        TextView contactView = (TextView)aboutView.findViewById(
-                                                            R.id.about_contact);
-        contactView.setMovementMethod(LinkMovementMethod.getInstance());
-        */
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setIcon(R.mipmap.ic_launcher);

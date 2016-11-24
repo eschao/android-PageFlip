@@ -19,9 +19,8 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.opengl.GLUtils;
-import android.text.method.BaseKeyListener;
+import android.util.Log;
 
-import java.io.FileReader;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -380,7 +379,7 @@ public class Page {
      * @return true if given x is not in page
      */
     boolean isXOutOfPage(float x) {
-        return originP.x < 0 ? x >= diagonalP.x : x <= diagonalP.x;
+        return originP.x < 0 ? x > diagonalP.x : x < diagonalP.x;
     }
 
     /**
@@ -749,7 +748,6 @@ public class Page {
         int ix = -1;
         int idy = -1;
         int iox = -1;
-        int start = -1;
         float halfH = height * 0.5f;
         float yX = originP.x;
         float yY = yFoldP1.y;
@@ -773,7 +771,7 @@ public class Page {
         // compute XFold point position in vertexes array
         if (isXOutOfPage(xFoldP1.x)) {
             if (iy > -1) {
-                xY = originP.y - (xFoldP1.x - diagonalP.x) / kValue;
+                xY = originP.y + (xFoldP1.x - diagonalP.x) / kValue;
                 xX = diagonalP.x;
                 ix = 12;
             }
@@ -808,11 +806,10 @@ public class Page {
         i = 9;
         j = 6;
         if (iy > -1) {
-            start = iy;
             int n = iy / 3 * 2;
-            vertexes[iy++] = yX;
-            vertexes[iy++] = yY;
-            vertexes[iy] = z;
+            vertexes[iy] = yX;
+            vertexes[iy + 1] = yY;
+            vertexes[iy + 2] = z;
             texCoords[n++] = textureX(yX);
             texCoords[n] = textureY(yY);
             i += 3;
@@ -820,14 +817,10 @@ public class Page {
         }
 
         if (ix > -1) {
-            if (start > ix) {
-                start = ix;
-            }
-
             int n = ix / 3 * 2;
-            vertexes[ix++] = xX;
-            vertexes[ix++] = xY;
-            vertexes[ix] = z;
+            vertexes[ix] = xX;
+            vertexes[ix + 1] = xY;
+            vertexes[ix + 2] = z;
             texCoords[n++] = textureX(xX);
             texCoords[n] = textureY(xY);
             i += 3;
@@ -842,13 +835,31 @@ public class Page {
         texCoords[j] = diagonalP.tY;
 
         // copy into front vertexes so that they can be draw at a time
-        if (start > -1) {
+        if (ix > -1 && iy > -1) {
             int end = i;
-            int m = start / 3 * 2;
-            i = start + 6;
-            for (; start < end; start += 3, m += 2) {
-                frontVertexes.addVertex(vertexes[start], vertexes[start+1], 0,
-                                        texCoords[m], texCoords[m+1]);
+            i = ix + 6;
+            if (iy < ix) {
+                i = iy + 6;
+            }
+
+            int jx = ix / 3 * 2;
+            int jy = iy / 3 * 2;
+            // keep adding vertex following the order: x -> y -> x -> y ...
+            Log.d("PageFlip", "===========================");
+            Log.d("PageFlip", "[Y] v: "+frontVertexes.mVertexes[frontVertexes.mNext-3]+
+                 ", "+frontVertexes.mVertexes[frontVertexes.mNext -2]);
+            for (; ix < end || iy < end; ix += 6, iy += 6, jx += 4, jy += 4) {
+                if (ix < end) {
+                    frontVertexes.addVertex(vertexes[ix], vertexes[ix + 1], 0,
+                                            texCoords[jx], texCoords[jx + 1]);
+                    Log.d("PageFlip", "[x:"+ix+"] v: " + vertexes[ix] + ", " + vertexes[ix+ 1] + ", 0");
+                }
+
+                if (iy < end) {
+                    frontVertexes.addVertex(vertexes[iy], vertexes[iy + 1], 0,
+                                            texCoords[jy], texCoords[jy + 1]);
+                    Log.d("PageFlip", "[y:"+iy+"] v: " + vertexes[iy] + ", " + vertexes[iy+ 1] + ", 0");
+                }
             }
         }
 

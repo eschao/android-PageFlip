@@ -185,8 +185,7 @@ public class SinglePageRender extends PageRender {
         background = null;
 
         // 2. draw page number
-        int fontSize = (int)(80 * mContext.getResources().getDisplayMetrics()
-                                          .scaledDensity);
+        int fontSize = calcFontSize(80);
         p.setColor(Color.WHITE);
         p.setStrokeWidth(1);
         p.setAntiAlias(true);
@@ -194,8 +193,23 @@ public class SinglePageRender extends PageRender {
         p.setTextSize(fontSize);
         String text = String.valueOf(number);
         float textWidth = p.measureText(text);
-        mCanvas.drawText(text, (width - textWidth) / 2,
-                         height - p.getTextSize() - 20, p);
+        float y = height - p.getTextSize() - 20;
+        mCanvas.drawText(text, (width - textWidth) / 2, y, p);
+
+        if (number <= 1) {
+            String firstPage = "The First Page";
+            p.setTextSize(calcFontSize(16));
+            float w = p.measureText(firstPage);
+            float h = p.getTextSize();
+            mCanvas.drawText(firstPage, (width - w) / 2, y + 5 + h, p);
+        }
+        else if (number >= MAX_PAGES) {
+            String lastPage = "The Last Page";
+            p.setTextSize(calcFontSize(16));
+            float w = p.measureText(lastPage);
+            float h = p.getTextSize();
+            mCanvas.drawText(lastPage, (width - w) / 2, y + 5 + h, p);
+        }
     }
 
     /**
@@ -204,6 +218,8 @@ public class SinglePageRender extends PageRender {
      * @return true if it can flip forward
      */
     public boolean canFlipForward() {
+        return (mPageNo < MAX_PAGES);
+        /*
         if (mPageNo >= MAX_PAGES) {
             Toast.makeText(mContext,
                            "This is the last page!",
@@ -213,7 +229,7 @@ public class SinglePageRender extends PageRender {
         }
         else {
             return true;
-        }
+        }*/
     }
 
     /**
@@ -227,10 +243,12 @@ public class SinglePageRender extends PageRender {
             return true;
         }
         else {
+            /*
             Toast.makeText(mContext,
                            "This is the first page!",
                            Toast.LENGTH_SHORT)
                  .show();
+                 */
             return false;
         }
     }

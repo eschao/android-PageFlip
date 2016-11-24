@@ -236,8 +236,23 @@ public class DoublePagesRender extends PageRender {
             text = "End";
         }
         float textWidth = p.measureText(text);
-        mCanvas.drawText(text, (width - textWidth) / 2,
-                         height - p.getTextSize() - 20, p);
+        float y = height - p.getTextSize() - 20;
+        mCanvas.drawText(text, (width - textWidth) / 2, y, p);
+
+        if (number == 1) {
+            String firstPage = "The First Page";
+            p.setTextSize(calcFontSize(16));
+            float w = p.measureText(firstPage);
+            float h = p.getTextSize();
+            mCanvas.drawText(firstPage, (width - w) / 2, y + 5 + h, p);
+        }
+        else if (number == MAX_PAGES) {
+            String lastPage = "The Last Page";
+            p.setTextSize(calcFontSize(16));
+            float w = p.measureText(lastPage);
+            float h = p.getTextSize();
+            mCanvas.drawText(lastPage, (width - w) / 2, y + 5 + h, p);
+        }
     }
 
     /**
@@ -249,30 +264,11 @@ public class DoublePagesRender extends PageRender {
         final Page page = mPageFlip.getFirstPage();
         // current page is left page
         if (page.isLeftPage()) {
-            if (mPageNo > 1) {
-                return true;
-            }
-            else {
-                Toast.makeText(mContext,
-                               "This is the first page!",
-                               Toast.LENGTH_SHORT)
-                     .show();
-            }
-        }
-        // current page is right page
-        else {
-            if (mPageNo + 2 <= MAX_PAGES) {
-                return true;
-            }
-            else {
-                Toast.makeText(mContext,
-                               "This is the last page!",
-                               Toast.LENGTH_SHORT)
-                     .show();
-            }
+            return (mPageNo > 1);
         }
 
-        return false;
+        // current page is right page
+        return (mPageNo + 2 <= MAX_PAGES);
     }
 
     /**

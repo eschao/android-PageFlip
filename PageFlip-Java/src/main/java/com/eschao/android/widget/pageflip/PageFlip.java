@@ -796,7 +796,7 @@ public class PageFlip {
             page.setOriginPoint(hasSecondPage, -touchY);
 
             // if enable clicking to flip, compute scroller points for animation
-            if (mIsClickToFlip) {
+            if (mIsClickToFlip && Math.abs(touchX - mStartTouchP.x) < 5) {
                 computeScrollPointsForClickingFlip(touchX, start, end);
             }
         }
@@ -805,6 +805,7 @@ public class PageFlip {
         if (mFlipState == PageFlipState.FORWARD_FLIP ||
             mFlipState == PageFlipState.BACKWARD_FLIP ||
             mFlipState == PageFlipState.RESTORE_FLIP) {
+            Log.d(TAG, "********** Finger UP ***********");
             mScroller.startScroll(start.x, start.y,
                                   end.x - start.x, end.y - start.y,
                                   duration);
@@ -1082,7 +1083,7 @@ public class PageFlip {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         final boolean hasSecondPage = mPages[SECOND_PAGE] != null;
 
-        // 1. draw fold back part
+        // 1. draw back of fold page
         glUseProgram(mFoldBackVertexProgram.hProgram);
         glActiveTexture(GL_TEXTURE0);
         mFoldBackVertexes.draw(mFoldBackVertexProgram,
@@ -1090,7 +1091,7 @@ public class PageFlip {
                                hasSecondPage,
                                mGradientShadowTextureID);
 
-        // 2. draw unfold page and fold front part
+        // 2. draw unfold page and front of fold page
         glUseProgram(mVertexProgram.hProgram);
         glActiveTexture(GL_TEXTURE0);
         glUniformMatrix4fv(mVertexProgram.hMVPMatrix, 1, false,
@@ -1449,6 +1450,8 @@ public class PageFlip {
         mFoldFrontVertexes.addVertex(cx, cy, cz, coordX, coordY);
         mFoldFrontBaseShadow.addVertexes(isX, cx, cy,
                                          cx + baseWcosA, cy - baseWsinA);
+        //String s = isX ? "[X]" : "[Y]";
+        //Log.d(TAG, s+" v: "+cx+", "+cy+", "+cz);
     }
 
     /**
@@ -1721,7 +1724,8 @@ public class PageFlip {
         x = mXFoldP.x - oX - stepX;
         y = mYFoldP.y - oY - stepY;
         int j = 0;
-        for (; j < count && Math.abs(y) < height; ++j, x -= stepX, y -= stepY) {
+        //Log.d(TAG, "===========================");
+        for (; j < count /*&& Math.abs(y) < height*/; ++j, x -= stepX, y -= stepY) {
             computeFrontVertex(true, x, 0, xFoldP1, sinA, cosA,
                                baseWcosA, baseWsinA,
                                page.textureX(x + oX), cOY, oX, oY, dY);

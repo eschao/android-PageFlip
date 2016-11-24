@@ -38,7 +38,7 @@ public abstract class PageRender implements OnPageFlipListener {
     final static int DRAW_ANIMATING_FRAME = 1;
     final static int DRAW_FULL_PAGE = 2;
 
-    final static int MAX_PAGES = 25;
+    final static int MAX_PAGES = 30;
 
     int mPageNo;
     int mDrawCommand;
@@ -109,6 +109,14 @@ public abstract class PageRender implements OnPageFlipListener {
         }
 
         return false;
+    }
+
+    /**
+     * Calculate font size by given SP unit
+     */
+    protected int calcFontSize(int size) {
+        return (int)(size * mContext.getResources().getDisplayMetrics()
+                                    .scaledDensity);
     }
 
     /**
