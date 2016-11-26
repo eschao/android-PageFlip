@@ -310,6 +310,23 @@ class Vertexes {
     }
 
     /**
+     * Add GPoint to float buffer
+     *
+     * @param point GPoint object
+     * @return self
+     */
+    public Vertexes addVertex(GPoint point) {
+        int j = mNext / mSizeOfPerVex * 2;
+        mVertexes[mNext++] = point.x;
+        mVertexes[mNext++] = point.y;
+        mVertexes[mNext++] = point.z;
+
+        mTextureCoords[j++] = point.tX;
+        mTextureCoords[j] = point.tY;
+        return this;
+    }
+
+    /**
      * Put data from float array to float buffer
      *
      * @param offset data start offset in float array

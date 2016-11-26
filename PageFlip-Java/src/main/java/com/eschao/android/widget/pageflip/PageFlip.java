@@ -24,8 +24,6 @@ import android.util.Log;
 import android.view.animation.AccelerateInterpolator;
 import android.widget.Scroller;
 
-import com.eschao.android.widget.pageflip.Page.GPoint;
-
 import static android.opengl.GLES20.GL_COLOR_BUFFER_BIT;
 import static android.opengl.GLES20.GL_DEPTH_BUFFER_BIT;
 import static android.opengl.GLES20.GL_DEPTH_TEST;
@@ -629,7 +627,7 @@ public class PageFlip {
         if (mFlipState == PageFlipState.BEGIN_FLIP &&
             (Math.abs(dx) > mViewRect.width * 0.05f)) {
             // set OriginP and DiagonalP points
-            page.setOriginPoint(mPages[SECOND_PAGE] != null, dy);
+            page.setOriginAndDiagonalPoints(mPages[SECOND_PAGE] != null, dy);
 
             // compute max degree between X axis and line from TouchP to OriginP
             // and max degree between X axis and line from TouchP to
@@ -682,19 +680,14 @@ public class PageFlip {
                 dx *= 1.1f;
             }
 
-            // moving direction is changed
+            // moving direction is changed:
+            // 1. invert max curling angle
+            // 2. invert Y of original point and diagonal point
             if ((dy < 0 && originP.y < 0) || (dy > 0 && originP.y > 0)) {
                 float t = mMaxT2DAngleTan;
                 mMaxT2DAngleTan = mMaxT2OAngleTan;
                 mMaxT2OAngleTan = t;
-
-                t = originP.y;
-                originP.y = diagonalP.y;
-                diagonalP.y = t;
-
-                t = originP.tY;
-                originP.tY = diagonalP.tY;
-                diagonalP.tY = t;
+                page.invertYOfOriginalPoint();
             }
 
             // compute new TouchP.y
@@ -785,7 +778,8 @@ public class PageFlip {
                 end.set((int)(diagonalP.x - page.width), (int)originP.y);
             }
             else {
-                mMaxT2OAngleTan = (mTouchP.y - originP.y) / (mTouchP.x - originP.x);
+                mMaxT2OAngleTan = (mTouchP.y - originP.y) /
+                                  (mTouchP.x - originP.x);
                 end.set((int) originP.x, (int) originP.y);
             }
         }
@@ -793,10 +787,10 @@ public class PageFlip {
         else if (mFlipState == PageFlipState.BEGIN_FLIP) {
             mIsVertical = false;
             mFlipState = PageFlipState.END_FLIP;
-            page.setOriginPoint(hasSecondPage, -touchY);
+            page.setOriginAndDiagonalPoints(hasSecondPage, -touchY);
 
             // if enable clicking to flip, compute scroller points for animation
-            if (mIsClickToFlip && Math.abs(touchX - mStartTouchP.x) < 5) {
+            if (mIsClickToFlip && Math.abs(touchX - mStartTouchP.x) < 2) {
                 computeScrollPointsForClickingFlip(touchX, start, end);
             }
         }
@@ -805,7 +799,6 @@ public class PageFlip {
         if (mFlipState == PageFlipState.FORWARD_FLIP ||
             mFlipState == PageFlipState.BACKWARD_FLIP ||
             mFlipState == PageFlipState.RESTORE_FLIP) {
-            Log.d(TAG, "********** Finger UP ***********");
             mScroller.startScroll(start.x, start.y,
                                   end.x - start.x, end.y - start.y,
                                   duration);
@@ -1094,8 +1087,6 @@ public class PageFlip {
         // 2. draw unfold page and front of fold page
         glUseProgram(mVertexProgram.hProgram);
         glActiveTexture(GL_TEXTURE0);
-        glUniformMatrix4fv(mVertexProgram.hMVPMatrix, 1, false,
-                           VertexProgram.MVPMatrix, 0);
         mPages[FIRST_PAGE].drawFrontPage(mVertexProgram,
                                          mFoldFrontVertexes);
         if (hasSecondPage) {
@@ -1725,7 +1716,7 @@ public class PageFlip {
         y = mYFoldP.y - oY - stepY;
         int j = 0;
         //Log.d(TAG, "===========================");
-        for (; j < count /*&& Math.abs(y) < height*/; ++j, x -= stepX, y -= stepY) {
+        for (; j < count && Math.abs(y) < height; ++j, x -= stepX, y -= stepY) {
             computeFrontVertex(true, x, 0, xFoldP1, sinA, cosA,
                                baseWcosA, baseWsinA,
                                page.textureX(x + oX), cOY, oX, oY, dY);

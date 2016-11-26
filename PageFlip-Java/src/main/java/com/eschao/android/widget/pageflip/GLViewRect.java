@@ -139,7 +139,7 @@ public final class GLViewRect {
 
     /**
      * Translate Android coordinate to OpenGL coordinate
-     *
+     * <p>
      * Android screen coordinate:
      * *------------> X[0..Width]
      * |
@@ -158,6 +158,7 @@ public final class GLViewRect {
      *            /
      *           /
      *          Z[0..1]
+     * </pre>
      */
     public float toOpenGLX(float x) {
         return x - halfW;

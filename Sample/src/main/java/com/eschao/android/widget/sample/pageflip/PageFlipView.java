@@ -153,21 +153,6 @@ public class PageFlipView extends GLSurfaceView implements Renderer {
     }
 
     /**
-     * Set pixels of mesh
-     *
-     * @param pixels pixel number of mesh
-     */
-    public void setPixelsOfMesh(int pixels) {
-        try {
-            mDrawLock.lock();
-            mPageFlip.setPixelsOfMesh(pixels);
-        }
-        finally {
-            mDrawLock.unlock();
-        }
-    }
-
-    /**
      * Handle finger down event
      *
      * @param x finger x coordinate
@@ -176,7 +161,8 @@ public class PageFlipView extends GLSurfaceView implements Renderer {
     public void onFingerDown(float x, float y) {
         // if the animation is going, we should ignore this event to avoid
         // mess drawing on screen
-        if (!mPageFlip.isAnimating()) {
+        if (!mPageFlip.isAnimating() &&
+            mPageFlip.getFirstPage() != null) {
             mPageFlip.onFingerDown(x, y);
         }
     }

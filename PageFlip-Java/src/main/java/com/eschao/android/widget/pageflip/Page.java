@@ -19,7 +19,6 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.opengl.GLUtils;
-import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -41,6 +40,7 @@ import static android.opengl.GLES20.glEnableVertexAttribArray;
 import static android.opengl.GLES20.glGenTextures;
 import static android.opengl.GLES20.glTexParameterf;
 import static android.opengl.GLES20.glUniform1i;
+import static android.opengl.GLES20.glUniformMatrix4fv;
 import static android.opengl.GLES20.glVertexAttribPointer;
 
 /**
@@ -80,11 +80,86 @@ import static android.opengl.GLES20.glVertexAttribPointer;
 
 public class Page {
 
-    public final static int TEXTURE_SIZE = 3;
-    public final static int FIRST_TEXTURE_ID = 0;
-    public final static int SECOND_TEXTURE_ID = 1;
-    public final static int BACK_TEXTURE_ID = 2;
-    public final static int INVALID_TEXTURE_ID = -1;
+    private final static int TEXTURE_SIZE = 3;
+    private final static int FIRST_TEXTURE_ID = 0;
+    private final static int SECOND_TEXTURE_ID = 1;
+    private final static int BACK_TEXTURE_ID = 2;
+    private final static int INVALID_TEXTURE_ID = -1;
+
+    /**
+     * <p>
+     * 4 apexes of page has different permutation order according to original
+     * point since original point will be changed when user click to curl page
+     * from different direction. There are 4 kinds of order:
+     * </p><pre>
+     *   A           B           C           D
+     * 2    1      3    0      0    3      1    2
+     * +----+      +----+      +----+      +----+
+     * |    |      |    |      |    |      |    |
+     * +----+      +----+      +----+      +----+
+     * 3    0      2    1      1    2      0    3
+     *             From A      From A      From A
+     *             0 <-> 1     0 <-> 2     0 <-> 3
+     *             3 <-> 2     3 <-> 1     1 <-> 2
+     * </pre>
+     * <ul>
+     *      <li>0 always represents the origin point, accordingly 2 is diagonal
+     *      point</li>
+     *      <li>Case A is default order: 0 -> 1 -> 2 -> 3</li>
+     *      <li>Every apex data is stored in mApexes following the case A order
+     *      and never changed</li>
+     *      <li>This array is mapping apex order (case A - D) to real apex data
+     *      stored in mApexes. For example:
+     *      <ul>
+     *          <li>Case A has same order with storing sequence of apex data in
+     *          mApexes</li>
+     *          <li>Case B: the 0 apex is stored in 1 position in mApexes</li>
+     *      </ul></li>
+     *  </ul>
+     */
+    private final static int[][] mPageApexOrders = new int[][] {
+        new int[] {0, 1, 2, 3}, // for case A
+        new int[] {1, 0, 3, 2}, // for case B
+        new int[] {2, 3, 0, 1}, // for case C
+        new int[] {3, 2, 1, 0}, // for case D
+    };
+
+    /**
+     * <p>When page is curled, there are 4 kinds of vertexes orders for drawing
+     * first texture and second texture with TRIANGLE_STRIP way</p><pre>
+     *     A             B              C              D
+     * 2       1     2     X 1      2 X     1      2       1
+     * +-------+     +-----.-+      +-.-----+      +-------+
+     * |       |     | F  /  |      |/      |      |   F   |
+     * |   F   .Y    |   /   |     Y.   S   |     X.-------.Y
+     * |      /|     |  /    |      |       |      |   S   |
+     * +-----.-+     +-.-----+      +-------+      +-------+
+     * 3    X  0     3 Y     0      3       0      3       0
+     * </pre>
+     * <ul>
+     *      <li>All cases are based on the apex order case A(0 -> 1 -> 2 -> 3)
+     *      </li>
+     *      <li>X is xFoldX point, Y is yFoldY point</li>
+     *      <li>Case A means: xFoldX and yFoldY are both in page</li>
+     *      <li>Case B means: xFoldX is in page, but yFoldY is the intersecting
+     *      point with line 1->2 since yFoldY is outside the page</li>
+     *      <li>Case C means: xFoldX and yFoldY are both outside the page</li>
+     *      <li>Case D means: xFoldX outside page but yFoldY is in the page</li>
+     *      <li>Combining {@link #mPageApexOrders} with this array, we can get
+     *      the right apex data from mApexes array which will help us quickly
+     *      organizing triangle data for openGL drawing</li>
+     *      <li>The last array in this array means: xFoldX and yFoldY are both
+     *      outside the page and the whole page will be draw with second
+     *      texture</li>
+     * </ul>
+     */
+    private final static int[][] mFoldVexOrders = new int[][] {
+        new int[] {4, 3, 1, 2, 0}, // Case A
+        new int[] {3, 3, 2, 0, 1}, // Case B
+        new int[] {3, 2, 1, 3, 0}, // Case C
+        new int[] {2, 2, 3, 1, 0}, // Case D
+        new int[] {1, 0, 1, 3, 2}, // Case E
+    };
 
     // page size
     float left;
@@ -99,84 +174,79 @@ public class Page {
     float texWidth;
     float texHeight;
 
-    // origin point and diagonal point
-    //
-    // 0-----+
-    // |     |
-    // |     |
-    // +-----1
-    //
-    // if origin(x, y) is 1, the diagonal(x, y) is 0
+    /**
+     * <p>origin point and diagonal point</p>
+     * <pre>
+     * 0-----+
+     * |     |
+     * |     |
+     * +-----1
+     * </pre>
+     * <p>if origin(x, y) is 1, the diagonal(x, y) is 0</p>
+     */
     GPoint originP;
     GPoint diagonalP;
 
-    // vertexes and texture coordinates buffer for full page
-    FloatBuffer mFullPageVexBuf;
-    FloatBuffer mFullPageTexCoordsBuf;
+    private GPoint mXFoldP;
+    private GPoint mYFoldP;
 
-    // vertexes for curling page
-    Vertexes mVertexes;
+    // vertexes and texture coordinates buffer for full page
+    private FloatBuffer mFullPageVexBuf;
+    private FloatBuffer mFullPageTexCoordsBuf;
+
+    // storing 4 apexes data of page
+    private float[] mApexes;
+    // texture coordinates for page apex
+    private float[] mApexTexCoords;
+    // vertex size of front of fold page and unfold page
+    private int mFrontVertexSize;
+    // index of apex order array for current original point
+    private int mApexOrderIndex;
 
     // mask color of back texture
     float[][] maskColor;
 
     // texture(front, back and second) ids allocated by OpenGL
-    int[] mTexIDs;
+    private int[] mTexIDs;
     // unused texture ids, will be deleted when next OpenGL drawing
-    int[] mUnusedTexIDs;
+    private int[] mUnusedTexIDs;
     // actual size of mUnusedTexIDs
-    int mUnusedTexSize;
+    private int mUnusedTexSize;
 
     /**
      * Constructor
      */
     public Page() {
-        left = 0;
-        right = 0;
-        top = 0;
-        bottom = 0;
-        width = 0;
-        height = 0;
-        texWidth = width;
-        texHeight = height;
-
-        originP = new GPoint();
-        diagonalP = new GPoint();
-        maskColor = new float[][] {
-                        new float[] {0, 0, 0},
-                        new float[] {0, 0, 0},
-                        new float[] {0, 0, 0}};
-
-        mTexIDs = new int[] {INVALID_TEXTURE_ID,
-                             INVALID_TEXTURE_ID,
-                             INVALID_TEXTURE_ID};
-        mUnusedTexSize = 0;
-        mUnusedTexIDs = new int[] {INVALID_TEXTURE_ID,
-                                   INVALID_TEXTURE_ID,
-                                   INVALID_TEXTURE_ID};
-        // create vertexes buffer
-        createVertexesBuffer();
+        init(0, 0, 0, 0);
     }
 
     /**
      * Constructor with page size
      */
     public Page(float l, float r, float t, float b) {
+        init(l, r, t, b);
+    }
+
+    private void init(float l, float r, float t, float b) {
+        top = t;
         left = l;
         right = r;
-        top = t;
         bottom = b;
         width = right - left;
         height = top - bottom;
         texWidth = width;
         texHeight = height;
+        mFrontVertexSize = 0;
+        mApexOrderIndex = 0;
 
+        mXFoldP = new GPoint();
+        mYFoldP = new GPoint();
         originP = new GPoint();
         diagonalP = new GPoint();
-        maskColor = new float[][] {
-                        new float[] {0, 0, 0},
-                        new float[] {0, 0, 0},
-                        new float[] {0, 0, 0}};
+
+        maskColor = new float[][] {new float[] {0, 0, 0},
+                                   new float[] {0, 0, 0},
+                                   new float[] {0, 0, 0}};
 
         mTexIDs = new int[] {INVALID_TEXTURE_ID,
                              INVALID_TEXTURE_ID,
@@ -185,6 +255,7 @@ public class Page {
         mUnusedTexIDs = new int[] {INVALID_TEXTURE_ID,
                                    INVALID_TEXTURE_ID,
                                    INVALID_TEXTURE_ID};
+
         createVertexesBuffer();
         buildVertexesOfFullPage();
     }
@@ -383,13 +454,31 @@ public class Page {
     }
 
     /**
+     * Compute index of page apexes order for current original point
+     */
+    private void computeIndexOfApexOrder() {
+        mApexOrderIndex = 0;
+        if (originP.x < right && originP.y < 0) {
+            mApexOrderIndex = 3;
+        }
+        else {
+            if (originP.y > 0) {
+                mApexOrderIndex++;
+            }
+            if (originP.x < right) {
+                mApexOrderIndex++;
+            }
+        }
+    }
+
+    /**
      * Set original point and diagonal point
      *
      * @param hasSecondPage has the second page in double pages mode?
      * @param dy relative finger movement on Y axis
      * @return self
      */
-    Page setOriginPoint(boolean hasSecondPage, float dy) {
+    Page setOriginAndDiagonalPoints(boolean hasSecondPage, float dy) {
         if (hasSecondPage && left < 0) {
             originP.x = left;
             diagonalP.x = right;
@@ -408,12 +497,30 @@ public class Page {
             diagonalP.y = bottom;
         }
 
+        computeIndexOfApexOrder();
+
         // set texture coordinates
         originP.tX = (originP.x - left) / texWidth;
         originP.tY = (top - originP.y) / texHeight;
         diagonalP.tX = (diagonalP.x - left) / texWidth;
         diagonalP.tY = (top - diagonalP.y) / texHeight;
         return this;
+    }
+
+    /**
+     * Invert Y coordinate of original point and diagonal point
+     */
+    void invertYOfOriginalPoint() {
+        float t = originP.y;
+        originP.y = diagonalP.y;
+        diagonalP.y = t;
+
+        t = originP.tY;
+        originP.tY = diagonalP.tY;
+        diagonalP.tY = t;
+
+        // re-compute index for apex order since original point is changed
+        computeIndexOfApexOrder();
     }
 
     /**
@@ -520,28 +627,26 @@ public class Page {
      * Draw front page when page is flipping
      *
      * @param program GL shader program
-     * @param vertexesOfFrontPage Vertexes of the curled front page
+     * @param vertexes Vertexes of the curled front page
      */
     public void drawFrontPage(VertexProgram program,
-                              Vertexes vertexesOfFrontPage) {
+                              Vertexes vertexes) {
         // 1. draw unfold part and curled part with the first texture
+        glUniformMatrix4fv(program.hMVPMatrix, 1, false,
+                           VertexProgram.MVPMatrix, 0);
         glBindTexture(GL_TEXTURE_2D, mTexIDs[FIRST_TEXTURE_ID]);
         glUniform1i(program.hTexture, 0);
-        vertexesOfFrontPage.drawWith(GL_TRIANGLE_STRIP,
-                                     program.hVertexPosition,
-                                     program.hTextureCoord);
+        vertexes.drawWith(GL_TRIANGLE_STRIP,
+                          program.hVertexPosition,
+                          program.hTextureCoord,
+                          0, mFrontVertexSize);
 
-        // 2. draw the back part with the second texture
-        glVertexAttribPointer(program.hVertexPosition, 3, GL_FLOAT, false, 0,
-                              mVertexes.mVertexesBuf);
-        glEnableVertexAttribArray(program.hVertexPosition);
-        glVertexAttribPointer(program.hTextureCoord, 2, GL_FLOAT, false, 0,
-                              mVertexes.mTextureCoordsBuf);
-        glEnableVertexAttribArray(program.hTextureCoord);
-
+        // 2. draw the second texture
         glBindTexture(GL_TEXTURE_2D, mTexIDs[SECOND_TEXTURE_ID]);
         glUniform1i(program.hTexture, 0);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, mVertexes.mVertexesSize);
+        glDrawArrays(GL_TRIANGLE_STRIP,
+                     mFrontVertexSize,
+                     vertexes.mVertexesSize - mFrontVertexSize);
     }
 
     /**
@@ -590,10 +695,8 @@ public class Page {
                                           .order(ByteOrder.nativeOrder())
                                           .asFloatBuffer();
 
-        // vertexes buffer for unfold page when page is flipping, it includes
-        // two parts: one is drawing with the first texture, another is drawing
-        // with the second texture
-        mVertexes = new Vertexes(6, 3);
+        mApexes = new float[12];
+        mApexTexCoords = new float[8];
     }
 
     /**
@@ -608,6 +711,9 @@ public class Page {
      *     +--------#-----+
      *     4        fX    3
      * </pre>
+     * <p>
+     * There is only one case to draw when page is flipping vertically
+     * </p>
      * <ul>
      *      <li>Page is flipping from right -> left</li>
      *      <li>Origin point: 3</li>
@@ -624,109 +730,63 @@ public class Page {
      */
     public void buildVertexesOfPageWhenVertical(Vertexes frontVertexes,
                                                 PointF xFoldP1) {
-        mVertexes.mVertexesSize = 0;
-        final float[] vertexes = mVertexes.mVertexes;
-        final float[] texCoords = mVertexes.mTextureCoords;
+        // if xFoldX and yFoldY are both outside the page, use the last vertex
+        // order to draw page
+        int index = 4;
 
-        int i = 0;
-        int j = 0;
-        int start = -1;
-        vertexes[i++] = originP.x;
-        vertexes[i++] = originP.y;
-        vertexes[i++] = -1;
-        texCoords[j++] = originP.tX;
-        texCoords[j++] = originP.tY;
-
-        vertexes[i++] = originP.x;
-        vertexes[i++] = diagonalP.y;
-        vertexes[i++] = -1;
-        texCoords[j++] = originP.tX;
-        texCoords[j++] = diagonalP.tY;
-
+        // compute xFoldX and yFoldY points
         if (!isXOutOfPage(xFoldP1.x)) {
+            // use the case B of vertex order to draw page
+            index = 1;
             float cx = textureX(xFoldP1.x);
-            start = 6;
-            vertexes[i++] = xFoldP1.x;
-            vertexes[i++] = originP.y;
-            vertexes[i++] = -1;
-            texCoords[j++] = cx;
-            texCoords[j++] = originP.tY;
-
-            vertexes[i++] = xFoldP1.x;
-            vertexes[i++] = diagonalP.y;
-            vertexes[i++] = -1;
-            texCoords[j++] = cx;
-            texCoords[j++] = diagonalP.tY;
+            mXFoldP.set(xFoldP1.x, originP.y, 0, cx, originP.tY);
+            mYFoldP.set(xFoldP1.x, diagonalP.y, 0, cx, diagonalP.tY);
         }
 
-        vertexes[i++] = diagonalP.x;
-        vertexes[i++] = originP.y;
-        vertexes[i++] = -1;
-        texCoords[j++] = diagonalP.tX;
-        texCoords[j++] = originP.tY;
+        // get apex order and fold vertex order
+        final int[] apexOrder = mPageApexOrders[mApexOrderIndex];
+        final int[] vexOrder = mFoldVexOrders[index];
 
-        vertexes[i++] = diagonalP.x;
-        vertexes[i++] = diagonalP.y;
-        vertexes[i++] = -1;
-        texCoords[j++] = diagonalP.tX;
-        texCoords[j] = diagonalP.tY;
-
-        // copy vertexes of unfold front part into front vertexes buffer so that
-        // the front part can be draw at a time
-        if (start > -1) {
-            for (int k = 6, m = 4; k < 18; k += 3, m += 2) {
-                frontVertexes.addVertex(vertexes[k], vertexes[k+1], 0,
-                                        texCoords[m], texCoords[m+1]);
-            }
-            i = 12;
+        // need to draw first texture, add xFoldX and yFoldY first. Remember
+        // the adding order of vertex in float buffer is X point prior to Y
+        // point
+        if (vexOrder[0] > 1) {
+            frontVertexes.addVertex(mXFoldP).addVertex(mYFoldP);
         }
 
-        mVertexes.toFloatBuffer(0, i);
+        // add the leftover vertexes for the first texture
+        for (int i = 1; i < vexOrder[0]; ++i) {
+            int k = apexOrder[vexOrder[i]];
+            int m = k * 3;
+            int n = k << 1;
+            frontVertexes.addVertex(mApexes[m], mApexes[m + 1], 0,
+                                    mApexTexCoords[n], mApexTexCoords[n + 1]);
+        }
+
+        // the vertex size for drawing front of fold page and first texture
+        mFrontVertexSize = frontVertexes.mNext / 3;
+
+        // if xFoldX and yFoldY are in the page, need add them for drawing the
+        // second texture
+        if (vexOrder[0] > 1) {
+            mXFoldP.z = mYFoldP.z = -1;
+            frontVertexes.addVertex(mXFoldP).addVertex(mYFoldP);
+        }
+
+        // add the remaining vertexes for the second texture
+        for (int i = vexOrder[0]; i < vexOrder.length; ++i) {
+            int k = apexOrder[vexOrder[i]];
+            int m = k * 3;
+            int n = k << 1;
+            frontVertexes.addVertex(mApexes[m], mApexes[m + 1], -1,
+                                    mApexTexCoords[n], mApexTexCoords[n + 1]);
+        }
     }
 
     /**
      * Build vertexes of page when page flip is slope
-     * <pre>
-     *   There are 3 cases need to be considered
-     *           <---- flip
-     *         case A               case B               case C
-     *     1            2      1         yFy  2      1    yFy     2
-     *     +------------+      +----------+---+      +-----+------+
-     *     |            |      |         /    |      |    /       |
-     *     |            +yFy   |        /     |      |   /        |
-     *     |           /|      |       /      |      |  /         |
-     *     |          / |      |      /       |      | /          |
-     *     |         /  |      |     /        |   xFx+            |
-     *     |        /   |      |    /         |      |            |
-     *     +-------+----+      +---+----------+      +------------+
-     *     4        xFx   3    4  xFx         3      4            3
-     * </pre>
-     * <ul>
-     *      <li>Page is flipping from right -> left</li>
-     *      <li>Origin point: 3</li>
-     *      <li>Diagonal point: 1</li>
-     *      <li>xFoldP1.x: xFx, yFoldP1.y: yFy</li>
-     *      <li>Drawing case A (TRIANGLE_STRIP):
-     *      <ul>
-     *          <li>Second: 3 -> yFy -> xFx</li>
-     *          <li>First : yFy -> xFx -> 2 -> 4 -> 1</li>
-     *      </ul>
-     *      </li>
-     *      <li>Drawing case B (TRIANGLE_STRIP):
-     *      <ul>
-     *          <li>Second: 3 -> 2 -> xFx -> yFy</li>
-     *          <li>First : xFx -> yFy -> 4 -> 1</li>
-     *      </ul>
-     *      </li>
-     *      <li>Drawing case C (TRIANGLE_STRIP):
-     *      <ul>
-     *          <li>Second: 3 -> 2 -> 4 -> yFy -> xFx</li>
-     *          <li>First : yFy -> xFx -> 1</li>
-     *      </ul>
-     *      </li>
-     *      <li>If yFy is outside the page, that means xFx is also out and it
-     *      will degenerate to a normal full page drawing: 3 -> 2 -> 4 -> 1</li>
-     * </ul>
+     * <p>See {@link #mApexOrderIndex} and {@link #mFoldVexOrders} to get more
+     * details</p>
      *
      * @param frontVertexes vertexes for drawing front part of page
      * @param xFoldP1 fold point on X axis
@@ -737,147 +797,85 @@ public class Page {
                                              PointF xFoldP1,
                                              PointF yFoldP1,
                                              float kValue) {
-        mVertexes.mVertexesSize = 0;
-        final float[] vertexes = mVertexes.mVertexes;
-        final float[] texCoords = mVertexes.mTextureCoords;
-
-        int i = 0;
-        int j = 0;
-        int z = -1;
-        int iy = -1;
-        int ix = -1;
-        int idy = -1;
-        int iox = -1;
+        // compute xFoldX point
         float halfH = height * 0.5f;
-        float yX = originP.x;
-        float yY = yFoldP1.y;
-        float xX = xFoldP1.x;
-        float xY = originP.y;
-
-        // compute FoldY point position in vertexes array
-        if (yFoldP1.y <= halfH && yFoldP1.y >= -halfH) {
-            iy = 3;
-            idy = 9;
-        }
-        else {
-            yX = originP.x + kValue * (yFoldP1.y - diagonalP.y);
-            yY = diagonalP.y;
-            if (!isXOutOfPage(yX)) {
-                iy = 9;
-            }
-            idy = 3;
-        }
-
-        // compute XFold point position in vertexes array
+        int index = 0;
+        mXFoldP.set(xFoldP1.x, originP.y, 0, textureX(xFoldP1.x), originP.tY);
         if (isXOutOfPage(xFoldP1.x)) {
-            if (iy > -1) {
-                xY = originP.y + (xFoldP1.x - diagonalP.x) / kValue;
-                xX = diagonalP.x;
-                ix = 12;
+            index = 2;
+            mXFoldP.x = diagonalP.x;
+            mXFoldP.y = originP.y + (xFoldP1.x - diagonalP.x) / kValue;
+            mXFoldP.tX = diagonalP.tX;
+            mXFoldP.tY = textureY(mXFoldP.y);
+        }
+
+        // compute yFoldY point
+        mYFoldP.set(originP.x, yFoldP1.y, 0, originP.tX, textureY(yFoldP1.y));
+        if (Math.abs(yFoldP1.y) > halfH)  {
+            index++;
+            mYFoldP.x = originP.x + kValue * (yFoldP1.y - diagonalP.y);
+            if (isXOutOfPage(mYFoldP.x)) {
+                index++;
             }
-            iox = 6;
-        }
-        else {
-            ix = 6;
-            iox = 12;
-        }
-
-        // add origin point in the first index
-        vertexes[0] = originP.x;
-        vertexes[1] = originP.y;
-        vertexes[2] = z;
-        texCoords[0] = originP.tX;
-        texCoords[1] = originP.tY;
-
-        j = idy / 3 * 2;
-        vertexes[idy++] = originP.x;
-        vertexes[idy++] = diagonalP.y;
-        vertexes[idy] = z;
-        texCoords[j++] = originP.tX;
-        texCoords[j] = diagonalP.tY;
-
-        j = iox / 3 * 2;
-        vertexes[iox++] = diagonalP.x;
-        vertexes[iox++] = originP.y;
-        vertexes[iox] = z;
-        texCoords[j++] = diagonalP.tX;
-        texCoords[j] = originP.tY;
-
-        i = 9;
-        j = 6;
-        if (iy > -1) {
-            int n = iy / 3 * 2;
-            vertexes[iy] = yX;
-            vertexes[iy + 1] = yY;
-            vertexes[iy + 2] = z;
-            texCoords[n++] = textureX(yX);
-            texCoords[n] = textureY(yY);
-            i += 3;
-            j += 2;
-        }
-
-        if (ix > -1) {
-            int n = ix / 3 * 2;
-            vertexes[ix] = xX;
-            vertexes[ix + 1] = xY;
-            vertexes[ix + 2] = z;
-            texCoords[n++] = textureX(xX);
-            texCoords[n] = textureY(xY);
-            i += 3;
-            j += 2;
-        }
-
-        // add the diagonal point in the tail
-        vertexes[i++] = diagonalP.x;
-        vertexes[i++] = diagonalP.y;
-        vertexes[i++] = z;
-        texCoords[j++] = diagonalP.tX;
-        texCoords[j] = diagonalP.tY;
-
-        // copy into front vertexes so that they can be draw at a time
-        if (ix > -1 && iy > -1) {
-            int end = i;
-            i = ix + 6;
-            if (iy < ix) {
-                i = iy + 6;
-            }
-
-            int jx = ix / 3 * 2;
-            int jy = iy / 3 * 2;
-            // keep adding vertex following the order: x -> y -> x -> y ...
-            Log.d("PageFlip", "===========================");
-            Log.d("PageFlip", "[Y] v: "+frontVertexes.mVertexes[frontVertexes.mNext-3]+
-                 ", "+frontVertexes.mVertexes[frontVertexes.mNext -2]);
-            for (; ix < end || iy < end; ix += 6, iy += 6, jx += 4, jy += 4) {
-                if (ix < end) {
-                    frontVertexes.addVertex(vertexes[ix], vertexes[ix + 1], 0,
-                                            texCoords[jx], texCoords[jx + 1]);
-                    Log.d("PageFlip", "[x:"+ix+"] v: " + vertexes[ix] + ", " + vertexes[ix+ 1] + ", 0");
-                }
-
-                if (iy < end) {
-                    frontVertexes.addVertex(vertexes[iy], vertexes[iy + 1], 0,
-                                            texCoords[jy], texCoords[jy + 1]);
-                    Log.d("PageFlip", "[y:"+iy+"] v: " + vertexes[iy] + ", " + vertexes[iy+ 1] + ", 0");
-                }
+            else {
+                mYFoldP.y = diagonalP.y;
+                mYFoldP.tX = textureX(mYFoldP.x);
+                mYFoldP.tY = diagonalP.tY;
             }
         }
 
-        // for second part of page
-        mVertexes.toFloatBuffer(0, i);
+        // get apex order and fold vertex order
+        final int[] apexOrder = mPageApexOrders[mApexOrderIndex];
+        final int[] vexOrder = mFoldVexOrders[index];
+
+        // need to draw first texture, add xFoldX and yFoldY first. Remember
+        // the adding order of vertex in float buffer is X point prior to Y
+        // point
+        if (vexOrder[0] > 1) {
+            frontVertexes.addVertex(mXFoldP).addVertex(mYFoldP);
+        }
+
+        // add the leftover vertexes for the first texture
+        for (int i = 1; i < vexOrder[0]; ++i) {
+            int k = apexOrder[vexOrder[i]];
+            int m = k * 3;
+            int n = k << 1;
+            frontVertexes.addVertex(mApexes[m], mApexes[m + 1], 0,
+                                    mApexTexCoords[n], mApexTexCoords[n + 1]);
+        }
+
+        // the vertex size for drawing front of fold page and first texture
+        mFrontVertexSize = frontVertexes.mNext / 3;
+
+        // if xFoldX and yFoldY are in the page, need add them for drawing the
+        // second texture
+        if (vexOrder[0] > 1) {
+            mXFoldP.z = mYFoldP.z = -1;
+            frontVertexes.addVertex(mXFoldP).addVertex(mYFoldP);
+        }
+
+        // add the remaining vertexes for the second texture
+        for (int i = vexOrder[0]; i < vexOrder.length; ++i) {
+            int k = apexOrder[vexOrder[i]];
+            int m = k * 3;
+            int n = k << 1;
+            frontVertexes.addVertex(mApexes[m], mApexes[m + 1], -1,
+                                    mApexTexCoords[n], mApexTexCoords[n + 1]);
+        }
     }
 
     /**
      * Build vertexes of full page
      * <pre>
-     *           <---- flip
-     *     1              2
+     *        <---- flip
+     *     3              2
      *     +--------------+
      *     |              |
      *     |              |
      *     |              |
+     *     |              |
      *     +--------------+
-     *     4              3
+     *     4              1
      * </pre>
      * <ul>
      *      <li>Page is flipping from right -> left</li>
@@ -888,47 +886,34 @@ public class Page {
      * </ul>
      */
     private void buildVertexesOfFullPage() {
-        float vertexes[] = new float[12];
-        float texCoords[] = new float[8];
         int i = 0;
         int j = 0;
 
-        vertexes[i++] = left;
-        vertexes[i++] = bottom;
-        vertexes[i++] = 0;
-        texCoords[j++] = textureX(left);
-        texCoords[j++] = textureY(bottom);
+        mApexes[i++] = right;
+        mApexes[i++] = bottom;
+        mApexes[i++] = 0;
+        mApexTexCoords[j++] = textureX(right);
+        mApexTexCoords[j++] = textureY(bottom);
 
-        vertexes[i++] = left;
-        vertexes[i++] = top;
-        vertexes[i++] = 0;
-        texCoords[j++] = textureX(left);
-        texCoords[j++] = textureY(top);
+        mApexes[i++] = right;
+        mApexes[i++] = top;
+        mApexes[i++] = 0;
+        mApexTexCoords[j++] = textureX(right);
+        mApexTexCoords[j++] = textureY(top);
 
-        vertexes[i++] = right;
-        vertexes[i++] = top;
-        vertexes[i++] = 0;
-        texCoords[j++] = textureX(right);
-        texCoords[j++] = textureY(top);
+        mApexes[i++] = left;
+        mApexes[i++] = top;
+        mApexes[i++] = 0;
+        mApexTexCoords[j++] = textureX(left);
+        mApexTexCoords[j++] = textureY(top);
 
-        vertexes[i++] = right;
-        vertexes[i++] = bottom;
-        vertexes[i] = 0;
-        texCoords[j++] = textureX(right);
-        texCoords[j] = textureY(bottom);
+        mApexes[i++] = left;
+        mApexes[i++] = bottom;
+        mApexes[i] = 0;
+        mApexTexCoords[j++] = textureX(left);
+        mApexTexCoords[j] = textureY(bottom);
 
-        mFullPageVexBuf.put(vertexes, 0, 12).position(0);
-        mFullPageTexCoordsBuf.put(texCoords, 0, 8).position(0);
-    }
-
-    /**
-     * GPoint includes (x,y) in OpenGL coordinate system and its texture
-     * coordinates (tX, tY)
-     */
-    static class GPoint {
-        float x;
-        float y;
-        float tX;
-        float tY;
+        mFullPageVexBuf.put(mApexes, 0, 12).position(0);
+        mFullPageTexCoordsBuf.put(mApexTexCoords, 0, 8).position(0);
     }
 }
