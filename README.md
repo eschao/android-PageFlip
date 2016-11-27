@@ -3,6 +3,8 @@ An android library of 3D style page flip. It needs OpenGL 2.0!
 
 ## Preview
 
+![SinglePage](https://cloud.githubusercontent.com/assets/20178358/20646678/df7c6ba4-b4ba-11e6-8753-6f764f825cc2.png)    ![DoublePages](https://cloud.githubusercontent.com/assets/20178358/20646731/20f6ebc6-b4bc-11e6-9857-efd8367db80c.png)
+
 ## Installation
 
 #### Gradle
@@ -56,7 +58,7 @@ More details, please take a look **PageFlipView** in sample application
 
   You can use **enableAutoPage** to enable auto page mode or disable it(enable single page mode).
 
-  **Example:**
+  Example:
   ```java
     // enable auto page mode
     mPageFlip.enableAutopage(true); 
@@ -66,7 +68,7 @@ More details, please take a look **PageFlipView** in sample application
   
   You can enable/disable clicking screen to flip
   
-  **Example:**
+  Example:
   ```java
     // enable clicking to flip
     mPageFlip.enableClickToFlip(true);
@@ -76,7 +78,7 @@ More details, please take a look **PageFlipView** in sample application
   
   You can give a ratio of width from 0 to 0.5f to set a area for reponsing click event to trigger a page flip. The default value is **0.5f**, which means the backfward flip will happen if you click the left half of screen and forward flip will start if you click the right half of screen in single page mode.
   
-  **Example:**
+  Example:
   ```java
     // set ratio with 0.3
     mPageFlip.setWidthRatioOfClickToFlip(0.3f);
@@ -86,7 +88,7 @@ More details, please take a look **PageFlipView** in sample application
 
   You can set a listener to tell **PageFlip** if the forward flip or backward flip is allowed to be happened.
    
-  **Example:**
+  Example:
   ```java
     mPageFlip.setListener(mListener);
   ```
@@ -95,7 +97,7 @@ More details, please take a look **PageFlipView** in sample application
 
   Set how many pixels are used to for a mesh. The less pxiels the mesh uses, the more fine the drawing is and the lower the  performance is. The default value is 10 pixels.
   
-  **Example:**
+  Example:
   ```java
     mPageFlip.setPixelsOfMesh(5);
   ```
@@ -119,7 +121,7 @@ More details, please take a look **PageFlipView** in sample application
     The length from p0 to p1 is peremeter of semi-cylinder and determined by ratio you giving
   ```
   
-  **Example:**
+  Example:
   ```java
     mPageFlip.setSemiPerimeterRatio(0.6f);
   ```
@@ -128,7 +130,7 @@ More details, please take a look **PageFlipView** in sample application
 
   You can set the mask alpha for back of fold page when page is curled in single page mode. The default value is 0.6f.
   
-  **Example:**
+  Example:
   ```java
     mPageFlip.setMaskAlphaOfFold(0.5f);
   ```
@@ -137,7 +139,7 @@ More details, please take a look **PageFlipView** in sample application
 
   You can set start/end color and start/end alpha for edge shadow of fold page.
   
-  **Example:**
+  Example:
   ```java
     // set start color with 0.1f, start alpha with 0.2f, end color with 0.5f
     // and end alpha with 1f
@@ -148,7 +150,7 @@ More details, please take a look **PageFlipView** in sample application
 
   You can set start/end color and start/end alpha for base shadow of fold page.
   
-  **Example:**
+  Example:
   ```java
     mPageFlip.setShadowColorOfFoldBase(0.05f, 0.2f, 0.5f, 1f);
   ```
@@ -157,7 +159,7 @@ More details, please take a look **PageFlipView** in sample application
 
   When page is curled, the size of fold page will be changed following the finger movement and its edge shadow width should be changed accordingly. You can set an appropriate width range for it to get a good flip animation.
   
-  **Example:**
+  Example:
   ```java
     // set the minimal width is 5 pixels and maximum width is 40 pixels.
     // set the ratio is 0.3f which means the width will be firstly computed by formula: 
@@ -170,7 +172,7 @@ More details, please take a look **PageFlipView** in sample application
 
   Like **[Edge shadow width of fold page](edge-shadow-width-of-foldpage)**, You can set an appropriate width range for base shadow of fold page.
   
-  **Example:**
+  Example:
   ```java
     // see {@link #setShadowWidthOfFoldEdges} function
     mPageFlip.setShadowWidthOfFoldBase(5, 40, 0.4f);
@@ -180,7 +182,7 @@ More details, please take a look **PageFlipView** in sample application
 
   You can give a duration for flip animating when you call **onFingerUp** function to handle finger up event.
   
-  **Example:**
+  Example:
   ```java
     // the last parameter is duration with millisecond unit, here we set it with 2 seconds.
     mPageFlip.onFingerUp(x, y, 2000);
