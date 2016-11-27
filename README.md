@@ -1,6 +1,29 @@
 # PageFlip
-An android library of 3D style page flip. It needs OpenGL 2.0!
+An Android library of 3D style page flip. It needs OpenGL 2.0!
 
+## Table of Contents
+ 
+ * [Preview](#preview)
+ * [Installation](#installation)
+   - [Gradle](#gradle)
+ * [Usage](#usage)
+   - [Introduce PageFlip Into Your Project](#simple-steps-for-introducing-pageflip-into-your-project)
+   - [Configure PageFilp](#configure-pageflip)
+     - [Page Mode](#page-mode)
+     - [Click Screen To Flip](#click-screen-to-flip)
+     - [Area If Clicking To Flip](#area-of-clicking-to-flip)
+     - [PageFlip Listener](#pageflip-listener)
+     - [Mesh Pixels](#mesh-pixels)
+     - [Ratio Of Semi-peremeter](#ration-of-semi-peremeter)
+     - [Mask Alpha For The Back Of Fold Page](#mask-alpha-for-the-back-of-fold-page)
+     - [Edge Shadow Color/Alpha Of Fold Page](#edge-shadow-color/alpha-of-fold-page)
+     - [Base Shadow Color/Alpha Of Fold Page](#base-shadow-color/alpha-of-fold-page)
+     - [Edge Shadow Width Of Fold Page](#edge-shadow-width-of-fold-page)
+     - [Base Shadow Width Of Fold Page](#base-shadow-width-of-fold-page)
+     - [Duration Of Flip Animating](#duration-of-flip-animating)
+     
+ * [License](#license)
+ 
 ## Preview
 
 ![SinglePage](https://cloud.githubusercontent.com/assets/20178358/20646678/df7c6ba4-b4ba-11e6-8753-6f764f825cc2.png)    ![DoublePages](https://cloud.githubusercontent.com/assets/20178358/20646731/20f6ebc6-b4bc-11e6-9857-efd8367db80c.png)
@@ -27,7 +50,7 @@ dependencies {
 
 ## Usage
 
-### 1. Simple steps for introducing PageFlip into your project:
+### Simple steps for introducing PageFlip into your project
 
 * Creates a surface view class extending from **GLSurfaceView**
 * Implements android **Renderer** interface to draw your content on screen
@@ -35,18 +58,18 @@ dependencies {
 * Configures **PageFlip**, for example: set animating duration, page mode or mesh pixels
 * Handles the below android events:
 
-  * **onFingerDown**: notify PageFlip object to prepare flip 
-  * **onFingerMove**: notify PageFlip object to compute data for drawing flip frame
-  * **onFingerUp**: notify PageFlip object to determine whether or not launching a flip animation
-  * **onSurfaceCreated**: notify PageFlip object to handle usreface creating event
-  * **onSurfaceChanged**: notify PageFlip object to handle surface changing event
+  * **onFingerDown**: notify *PageFlip* object to prepare flip 
+  * **onFingerMove**: notify *PageFlip* object to compute data for drawing flip frame
+  * **onFingerUp**: notify *PageFlip* object to determine whether or not launching a flip animation
+  * **onSurfaceCreated**: notify *PageFlip* object to handle usreface creating event
+  * **onSurfaceChanged**: notify *PageFlip* object to handle surface changing event
   
-* You may need a message handler to receiver a end drawing message from OpenGL rendering thread. Refers to **PageFlipView** in sample application.
-* You may need a locker to avoid conflicts between main thread and OpenGL rendering thread. Refers to **PageFlipView** in sample application.
+* You may need a message handler to send/receive an end drawing message. Please refer to **PageFlipView** in sample application.
+* You may need a lock to avoid conflicts between main thread and OpenGL rendering thread. Please refer to **PageFlipView** in sample application.
 
-More details, please take a look **PageFlipView** in sample application
+More details, please take a look **PageFlipView** in sample application.
 
-### 2. Configure PageFlip
+### Configure PageFlip
 
 **PageFlip** library provides some configurations for customizing its behaviors. For example: shadow color and alpha, mesh pixels and page mode. 
 
@@ -76,7 +99,7 @@ More details, please take a look **PageFlipView** in sample application
   
 * **Area of clicking to flip**
   
-  You can give a ratio of width from 0 to 0.5f to set a area for reponsing click event to trigger a page flip. The default value is **0.5f**, which means the backfward flip will happen if you click the left half of screen and forward flip will start if you click the right half of screen in single page mode.
+  You can give a ratio of width from 0 to 0.5f to set an area for reponsing click event to trigger a page flip. The default value is **0.5f**, which means the backfward flip will happen if you click the left half of screen and forward flip will start if you click the right half of screen in single page mode.
   
   Example:
   ```java
@@ -95,7 +118,7 @@ More details, please take a look **PageFlipView** in sample application
  
 * **Mesh pixels**
 
-  Set how many pixels are used to for a mesh. The less pxiels the mesh uses, the more fine the drawing is and the lower the  performance is. The default value is 10 pixels.
+  Set how many pixels are used for a mesh. The less pxiels the mesh uses, the more fine the drawing is and the lower the  performance is. The default value is 10 pixels.
   
   Example:
   ```java
@@ -116,9 +139,10 @@ More details, please take a look **PageFlipView** in sample application
     |           \    |
     |        p1  +   |
     |              \ |
-    +----------------+ original point, that means you drag the page from here to touch point(touchP)
+    +----------------+
+                original point, that means you drag the page from here to touch point(touchP)
   
-    The length from p0 to p1 is peremeter of semi-cylinder and determined by ratio you giving
+    The length from p0 to p1 is peremeter of semi-cylinder and determined by ratio your giving
   ```
   
   Example:
@@ -128,7 +152,7 @@ More details, please take a look **PageFlipView** in sample application
   
 * **Mask alpha for the back of fold page**
 
-  You can set the mask alpha for back of fold page when page is curled in single page mode. The default value is 0.6f.
+  You can set the mask alpha for the back of fold page when page is curled in single page mode. The default value is 0.6f.
   
   Example:
   ```java
@@ -157,7 +181,7 @@ More details, please take a look **PageFlipView** in sample application
   
 * **Edge shadow width of fold page**
 
-  When page is curled, the size of fold page will be changed following the finger movement and its edge shadow width should be changed accordingly. You can set an appropriate width range for it to get a good flip animation.
+  When page is curled, the size of fold page will be changed following the finger movement and its edge shadow width should be changed accordingly. You can set an appropriate width range for shadow width.
   
   Example:
   ```java
