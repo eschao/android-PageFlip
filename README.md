@@ -9,18 +9,18 @@ An Android library of 3D style page flip. It needs OpenGL 2.0!
  * [Usage](#usage)
    - [Introduce PageFlip Into Your Project](#simple-steps-for-introducing-pageflip-into-your-project)
    - [Configure PageFilp](#configure-pageflip)
-     - [Page Mode](#page-mode)
-     - [Click Screen To Flip](#click-screen-to-flip)
-     - [Area If Clicking To Flip](#area-of-clicking-to-flip)
-     - [PageFlip Listener](#pageflip-listener)
-     - [Mesh Pixels](#mesh-pixels)
-     - [Ratio Of Semi-peremeter](#ration-of-semi-peremeter)
-     - [Mask Alpha For The Back Of Fold Page](#mask-alpha-for-the-back-of-fold-page)
-     - [Edge Shadow Color/Alpha Of Fold Page](#edge-shadow-color/alpha-of-fold-page)
-     - [Base Shadow Color/Alpha Of Fold Page](#base-shadow-color/alpha-of-fold-page)
-     - [Edge Shadow Width Of Fold Page](#edge-shadow-width-of-fold-page)
-     - [Base Shadow Width Of Fold Page](#base-shadow-width-of-fold-page)
-     - [Duration Of Flip Animating](#duration-of-flip-animating)
+     + [Page Mode](#1-page-mode)
+     + [Click Screen To Flip](#2-click-screen-to-flip)
+     + [Area If Clicking To Flip](#3-area-of-clicking-to-flip)
+     + [PageFlip Listener](#4-pageflip-listener)
+     + [Mesh Pixels](#5-mesh-pixels)
+     + [Ratio Of Semi-peremeter](#6-ratio-of-semi-peremeter)
+     + [Mask Alpha For The Back Of Fold Page](#7-mask-alpha-for-the-back-of-fold-page)
+     + [Edge Shadow Color/Alpha Of Fold Page](#8-edge-shadow-coloralpha-of-fold-page)
+     + [Base Shadow Color/Alpha Of Fold Page](#9-base-shadow-coloralpha-of-fold-page)
+     + [Edge Shadow Width Of Fold Page](#10-edge-shadow-width-of-fold-page)
+     + [Base Shadow Width Of Fold Page](#11-base-shadow-width-of-fold-page)
+     + [Duration Of Flip Animating](#12-duration-of-flip-animating)
      
  * [License](#license)
  
@@ -64,7 +64,7 @@ dependencies {
   * **onSurfaceCreated**: notify *PageFlip* object to handle usreface creating event
   * **onSurfaceChanged**: notify *PageFlip* object to handle surface changing event
   
-* You may need a message handler to send/receive an end drawing message. Please refer to **PageFlipView** in sample application.
+* You may need a message handler to send/receive an drawing message. Please refer to **PageFlipView** in sample application.
 * You may need a lock to avoid conflicts between main thread and OpenGL rendering thread. Please refer to **PageFlipView** in sample application.
 
 More details, please take a look **PageFlipView** in sample application.
@@ -73,7 +73,7 @@ More details, please take a look **PageFlipView** in sample application.
 
 **PageFlip** library provides some configurations for customizing its behaviors. For example: shadow color and alpha, mesh pixels and page mode. 
 
-* **Page Mode**
+#### 1. Page Mode
 
   There are two page modes provided by **PageFlip**:
     * **Auto Page Mode**: In this mode, **PageFlip** will automatically determine use single page or double pages to present content on screen. That means single page is used for portrait mode and double pages is used for lanscape mode.
@@ -87,7 +87,7 @@ More details, please take a look **PageFlipView** in sample application.
     mPageFlip.enableAutopage(true); 
   ```
   
-* **Click screen to flip**
+#### 2. Click screen to flip
   
   You can enable/disable clicking screen to flip
   
@@ -97,7 +97,7 @@ More details, please take a look **PageFlipView** in sample application.
     mPageFlip.enableClickToFlip(true);
   ```
   
-* **Area of clicking to flip**
+#### 3. Area of clicking to flip
   
   You can give a ratio of width from 0 to 0.5f to set an area for reponsing click event to trigger a page flip. The default value is **0.5f**, which means the backfward flip will happen if you click the left half of screen and forward flip will start if you click the right half of screen in single page mode.
   
@@ -107,7 +107,7 @@ More details, please take a look **PageFlipView** in sample application.
     mPageFlip.setWidthRatioOfClickToFlip(0.3f);
   ```
 
-* **PageFlip listener**
+#### 4. PageFlip listener
 
   You can set a listener to tell **PageFlip** if the forward flip or backward flip is allowed to be happened.
    
@@ -116,7 +116,7 @@ More details, please take a look **PageFlipView** in sample application.
     mPageFlip.setListener(mListener);
   ```
  
-* **Mesh pixels**
+#### 5. Mesh pixels
 
   Set how many pixels are used for a mesh. The less pxiels the mesh uses, the more fine the drawing is and the lower the  performance is. The default value is 10 pixels.
   
@@ -125,7 +125,7 @@ More details, please take a look **PageFlipView** in sample application.
     mPageFlip.setPixelsOfMesh(5);
   ```
   
-* **Ratio of semi-peremeter**
+#### 6. Ratio of semi-peremeter
 
   When page is curled, it is actually tackled as a semi-cylinder by **PageFlip**. You can set size of the semi-cylinder to change the flip shap. Since the semi-cylinder dependeds on the line length from the touch point to original point(see the below illustration), you need to provide a ratio of this line length to tell **PageFlip** the peremeter of the semi-cylinder. The default value is 0.8f.
   
@@ -150,7 +150,7 @@ More details, please take a look **PageFlipView** in sample application.
     mPageFlip.setSemiPerimeterRatio(0.6f);
   ```
   
-* **Mask alpha for the back of fold page**
+#### 7. Mask alpha for the back of fold page
 
   You can set the mask alpha for the back of fold page when page is curled in single page mode. The default value is 0.6f.
   
@@ -159,7 +159,7 @@ More details, please take a look **PageFlipView** in sample application.
     mPageFlip.setMaskAlphaOfFold(0.5f);
   ```
   
-* **Edge shadow color/alpha of fold page**
+#### 8. Edge shadow color/alpha of fold page
 
   You can set start/end color and start/end alpha for edge shadow of fold page.
   
@@ -170,7 +170,7 @@ More details, please take a look **PageFlipView** in sample application.
     mPageFlip.setShadowColorOfFoldBase(0.1f, 0.2f, 0.5f, 1f);
   ```
 
-* **Base shadow color/alpha of fold page**
+#### 9. Base shadow color/alpha of fold page
 
   You can set start/end color and start/end alpha for base shadow of fold page.
   
@@ -179,7 +179,7 @@ More details, please take a look **PageFlipView** in sample application.
     mPageFlip.setShadowColorOfFoldBase(0.05f, 0.2f, 0.5f, 1f);
   ```
   
-* **Edge shadow width of fold page**
+#### 10. Edge shadow width of fold page
 
   When page is curled, the size of fold page will be changed following the finger movement and its edge shadow width should be changed accordingly. You can set an appropriate width range for shadow width.
   
@@ -192,7 +192,7 @@ More details, please take a look **PageFlipView** in sample application.
     mPageFlip.setShadowWidthOfFoldEdges(5, 40, 0.3f);
   ```
 
-* **Base shadow width of fold page**
+#### 11. Base shadow width of fold page
 
   Like **[Edge shadow width of fold page](edge-shadow-width-of-foldpage)**, You can set an appropriate width range for base shadow of fold page.
   
@@ -202,7 +202,7 @@ More details, please take a look **PageFlipView** in sample application.
     mPageFlip.setShadowWidthOfFoldBase(5, 40, 0.4f);
   ```
 
-* **Duration of flip animating**
+#### 12. Duration of flip animating
 
   You can give a duration for flip animating when you call **onFingerUp** function to handle finger up event.
   
