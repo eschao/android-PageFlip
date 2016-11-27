@@ -25,7 +25,7 @@ dependencies {
 
 ## Usage
 
-### Simple steps for introducing PageFlip library into your project:
+### 1. Simple steps for introducing PageFlip into your project:
 
 * Creates a surface view class extending from **GLSurfaceView**
 * Implements android **Renderer** interface to draw your content on screen
@@ -44,22 +44,44 @@ dependencies {
 
 More details, please take a look **PageFlipView** in sample application
 
-### Configure PageFlip
+### 2. Configure PageFlip
 
 **PageFlip** library provides some configurations for customizing its behaviors. For example: shadow color and alpha, mesh pixels and page mode. 
 
-#### 1. Page Mode
+* **Page Mode**
 
-There are two page modes provided by **PageFlip**:
- * Auto Page Mode: In this mode, **PageFlip** will automatically determine use single page or double pages to present content on screen. That means single page is used for portrait mode and double pages is used for lanscape mode.
- * Single Page Mode: No matter what screen is portait or landscape mode, **PageFlip** always use single page to show content
+  There are two page modes provided by **PageFlip**:
+    * **Auto Page Mode**: In this mode, **PageFlip** will automatically determine use single page or double pages to present content on screen. That means single page is used for portrait mode and double pages is used for lanscape mode.
+    * **Single Page Mode**: No matter what screen is portait or landscape mode, **PageFlip** always use single page to show content
 
-You can use **enableAutoPage** to enable auto page mode or disable it(enable single page mode).
+  You can use **enableAutoPage** to enable auto page mode or disable it(enable single page mode).
 
-**Example:**
->```java
+  **Example:**
+  ```java
     // enable auto page mode
     mPageFlip.enableAutopage(true); 
-```
+  ```
+  
+* **Click screen to flip**
+  
+  You can enable/disable clicking screen to flip page
+  
+  **Example:**
+  ```java
+    // enable clicking to flip
+    mPageFlip.enableClickToFlip(true);
+  ```
+  
+* **Set screen area for clicking to flip**
+  
+  You can give a ratio of width from 0 to 0.5f to set a area for reponsing click event to trigger a page flip. The default value is **0.5f** which means the backfward flip will happen if you click the left half of screen and forward flip will start if you click the right half of screen in single page mode.
+  
+  **Example:**
+  ```java
+    // set ratio with 0.3
+    mPageFlip.setWidthRatioOfClickToFlip(0.3f);
+  ```
+
+ 
 ## License
 This project is licensed under the Apache License Version 2.0
