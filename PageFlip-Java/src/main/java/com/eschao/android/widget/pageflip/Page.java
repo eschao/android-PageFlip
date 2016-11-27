@@ -139,6 +139,8 @@ public class Page {
      * <ul>
      *      <li>All cases are based on the apex order case A(0 -> 1 -> 2 -> 3)
      *      </li>
+     *      <li>F means the first texture area, S means the second texture area
+     *      </li>
      *      <li>X is xFoldX point, Y is yFoldY point</li>
      *      <li>Case A means: xFoldX and yFoldY are both in page</li>
      *      <li>Case B means: xFoldX is in page, but yFoldY is the intersecting
@@ -148,9 +150,9 @@ public class Page {
      *      <li>Combining {@link #mPageApexOrders} with this array, we can get
      *      the right apex data from mApexes array which will help us quickly
      *      organizing triangle data for openGL drawing</li>
-     *      <li>The last array in this array means: xFoldX and yFoldY are both
-     *      outside the page and the whole page will be draw with second
-     *      texture</li>
+     *      <li>The last array(Case E) in this array means: xFoldX and yFoldY
+     *      are both outside the page and the whole page will be draw with
+     *      second texture</li>
      * </ul>
      */
     private final static int[][] mFoldVexOrders = new int[][] {

@@ -77,6 +77,12 @@ public class PageFlip {
     private final static float MAX_TAN_OF_BACKWARD_FLIP =
                                 (float)Math.tan(Math.PI / 20);
 
+    // width ratio of clicking to flip
+    private final static float WIDTH_RATIO_OF_CLICK_TO_FLIP = 0.5f;
+
+    // width ratio of triggering restore flip
+    private final static float WIDTH_RATIO_OF_RESTORE_FLIP = 0.4f;
+
     // folder page shadow color buffer size
     private final static int FOLD_TOP_EDGE_SHADOW_VEX_COUNT = 22;
 
@@ -212,6 +218,8 @@ public class PageFlip {
 
     // is clicking to flip page
     private boolean mIsClickToFlip;
+    // width ration of clicking to flip
+    private float mWidthRationOfClickToFlip;
 
     // listener for page flipping
     private OnPageFlipListener mListener;
@@ -229,6 +237,7 @@ public class PageFlip {
         mSemiPerimeterRatio = 0.8f;
         mIsClickToFlip = true;
         mListener = null;
+        mWidthRationOfClickToFlip = WIDTH_RATIO_OF_CLICK_TO_FLIP;
 
         // init pages
         mPages = new Page[PAGE_SIZE];
@@ -326,6 +335,23 @@ public class PageFlip {
      */
     public PageFlip enableClickToFlip(boolean enable) {
         mIsClickToFlip = enable;
+        return this;
+    }
+
+    /**
+     * Set width ratio of clicking to flip, the default is 0.5f
+     * <p>Which area the finger is clicking on will trigger a flip forward or
+     * backward</p>
+     *
+     * @param ratio width ratio of clicking to flip, is (0 ... 0.5]
+     * @return self
+     */
+    public PageFlip setWidthRatioOfClickToFlip(float ratio) {
+        if (ratio <= 0 || ratio > 0.5f) {
+            throw new IllegalArgumentException("Invalid ratio value: " + ratio);
+        }
+
+        mWidthRationOfClickToFlip = ratio;
         return this;
     }
 
@@ -696,7 +722,7 @@ public class PageFlip {
                 dy = maxY;
             }
 
-            // check if XFoldX1 is out of page width, if yes, recompute new
+            // check if XFoldX1 is outside page width, if yes, recompute new
             // TouchP.y to assure the XFoldX1 is in page width
             float t2oK = dy / dx;
             float xTouchX = dx + dy * t2oK;
@@ -758,7 +784,7 @@ public class PageFlip {
         // forward flipping
         if (mFlipState == PageFlipState.FORWARD_FLIP) {
             // can't going forward, restore current page
-            if (page.isXInRange(touchX, 0.4f)) {
+            if (page.isXInRange(touchX, WIDTH_RATIO_OF_RESTORE_FLIP)) {
                 end.x = (int)originP.x;
                 mFlipState = PageFlipState.RESTORE_FLIP;
             }
@@ -847,7 +873,7 @@ public class PageFlip {
 
         // backward flip
         if (!hasSecondPage &&
-            x < diagonalP.x + page.width * 0.3f &&
+            x < diagonalP.x + page.width * mWidthRationOfClickToFlip &&
             mListener != null &&
             mListener.canFlipBackward()) {
             mFlipState = PageFlipState.BACKWARD_FLIP;
@@ -859,7 +885,7 @@ public class PageFlip {
         // forward flip
         else if (mListener != null &&
                  mListener.canFlipForward() &&
-                 page.isXInRange(x, 0.3f)) {
+                 page.isXInRange(x, mWidthRationOfClickToFlip)) {
             mFlipState = PageFlipState.FORWARD_FLIP;
             mKValue = tanOfForwardAngle;
 
@@ -930,7 +956,7 @@ public class PageFlip {
 
             // in double page mode
             if (mPages[SECOND_PAGE] != null) {
-                // if the xFoldP1.x is out of page width, need to limit
+                // if the xFoldP1.x is outside page width, need to limit
                 // xFoldP1.x is in page.width and recompute new key points so
                 // that the page flip is still going forward
                 if (page.isXOutOfPage(mXFoldP1.x)) {
@@ -961,7 +987,7 @@ public class PageFlip {
                                   Math.abs(mXFoldP0.x - diagonalP.x) >= 2;
                 }
             }
-            // in single page mode, check if the whole fold page is out of
+            // in single page mode, check if the whole fold page is outside the
             // screen and animating should be stopped
             else if (mFlipState == PageFlipState.FORWARD_FLIP) {
                 float r = (float)(mLenOfTouchOrigin * mSemiPerimeterRatio /
@@ -1493,12 +1519,12 @@ public class PageFlip {
      * increasing index from middle to the tail. This design will help keep
      * float buffer consecutive and to be draw at a time.
      * </p><p>
-     * Sometimes, the whole or part of YFold points will be out of page, that
+     * Sometimes, the whole or part of YFold points will be outside page, that
      * means their Y coordinate are greater than page height(diagonal.y). In
      * this case, we have to crop them like cropping line on 2D coordinate
      * system. If delve further, we can conclude that we only need to compute
      * the first start/end vertexes which is falling on the border line of
-     * diagonal.y since other backward vertexes must be out of page and could
+     * diagonal.y since other backward vertexes must be outside page and could
      * not be seen, and then combine these vertexes with forward vertexes to
      * render base shadow.
      * </p><p>
@@ -1539,9 +1565,9 @@ public class PageFlip {
         float cy2 = cy1 - baseWsinA;
 
         // as we know, this function is only used to compute last vertex of
-        // base shadow(backward) when the YFold points are out of page height,
+        // base shadow(backward) when the YFold points are outside page height,
         // that means the (cx1, cy1) and (cx2, cy2) we computed above normally
-        // is out of page, so we need to compute their projection points on page
+        // is outside page, so we need to compute their projection points on page
         // border as rendering vertex of base shadow
         float bx1 = cx1 + mKValue * (cy1 - dY);
         float bx2 = cx2 + mKValue * (cy2 - dY);

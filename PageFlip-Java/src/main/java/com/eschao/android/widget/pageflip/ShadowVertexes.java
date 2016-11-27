@@ -77,7 +77,7 @@ class ShadowVertexes {
     private int mSpaceOfFrontRear;
 
     // forward and backward index for adding vertex
-    int mBackward;
+    private int mBackward;
     private int mForward;
 
     /**
