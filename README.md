@@ -1,5 +1,5 @@
 # PageFlip
-An Android library of 3D style page flip. It needs OpenGL 2.0!
+This project is aimed to implement 3D style page flip on Android system based on OpenGL 2.0.
 
 ## Table of Contents
  
@@ -11,7 +11,7 @@ An Android library of 3D style page flip. It needs OpenGL 2.0!
    - [Configure PageFilp](#ii-configure-pageflip)
      + [Page Mode](#1-page-mode)
      + [Click Screen To Flip](#2-click-screen-to-flip)
-     + [Area If Clicking To Flip](#3-area-of-clicking-to-flip)
+     + [Area Of Clicking To Flip](#3-area-of-clicking-to-flip)
      + [PageFlip Listener](#4-pageflip-listener)
      + [Mesh Pixels](#5-mesh-pixels)
      + [Ratio Of Semi-peremeter](#6-ratio-of-semi-peremeter)
