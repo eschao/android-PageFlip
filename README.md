@@ -7,8 +7,8 @@ An Android library of 3D style page flip. It needs OpenGL 2.0!
  * [Installation](#installation)
    - [Gradle](#gradle)
  * [Usage](#usage)
-   - [Introduce PageFlip Into Your Project](#simple-steps-for-introducing-pageflip-into-your-project)
-   - [Configure PageFilp](#configure-pageflip)
+   - [Introduce PageFlip Into Your Project](#i-simple-steps-for-introducing-pageflip-into-your-project)
+   - [Configure PageFilp](#ii-configure-pageflip)
      + [Page Mode](#1-page-mode)
      + [Click Screen To Flip](#2-click-screen-to-flip)
      + [Area If Clicking To Flip](#3-area-of-clicking-to-flip)
@@ -50,7 +50,7 @@ dependencies {
 
 ## Usage
 
-### Simple steps for introducing PageFlip into your project
+### I. Simple steps for introducing PageFlip into your project
 
 * Creates a surface view class extending from **GLSurfaceView**
 * Implements android **Renderer** interface to draw your content on screen
@@ -69,17 +69,19 @@ dependencies {
 
 More details, please take a look **PageFlipView** in sample application.
 
-### Configure PageFlip
+### II. Configure PageFlip
 
 **PageFlip** library provides some configurations for customizing its behaviors. For example: shadow color and alpha, mesh pixels and page mode. 
 
 #### 1. Page Mode
 
   There are two page modes provided by **PageFlip**:
-    * **Auto Page Mode**: In this mode, **PageFlip** will automatically determine use single page or double pages to present content on screen. That means single page is used for portrait mode and double pages is used for lanscape mode.
-    * **Single Page Mode**: No matter what screen is portait or landscape mode, **PageFlip** always use single page to show content
+  
+  * **Auto Page Mode**: In this mode, **PageFlip** will automatically determine use single page or double pages to present content on screen. That means single page is used for portrait mode and double pages is used for lanscape mode.
+  * **Single Page Mode**: No matter what screen is portait or landscape mode, **PageFlip** always use single page to show content
 
-  You can use **enableAutoPage** to enable auto page mode or disable it(enable single page mode).
+
+You can use **enableAutoPage** to enable auto page mode or disable it(enable single page mode).
 
   Example:
   ```java
@@ -194,7 +196,7 @@ More details, please take a look **PageFlipView** in sample application.
 
 #### 11. Base shadow width of fold page
 
-  Like **[Edge shadow width of fold page](edge-shadow-width-of-foldpage)**, You can set an appropriate width range for base shadow of fold page.
+  Like **[Edge shadow width of fold page](10-edge-shadow-width-of-fold-page)**, You can set an appropriate width range for base shadow of fold page.
   
   Example:
   ```java
