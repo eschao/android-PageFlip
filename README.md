@@ -53,9 +53,9 @@ dependencies {
 ### I. Simple steps for introducing PageFlip into your project
 
 * Creates a surface view class extending from **GLSurfaceView**
-* Implements android **Renderer** interface to draw your content on screen
+* Implements android **Renderer** interface to draw your content on a bitmap and set it as a texture of **PageFlip**
 * Instanitiates a **PageFlip** object in the constructor of your surface view
-* Configures **PageFlip**, for example: set animating duration, page mode or mesh pixels
+* Configures **PageFlip**, For example: set animating duration, page mode or mesh pixels
 * Handles the below android events:
 
   * **onFingerDown**: notify *PageFlip* object to prepare flip 
@@ -204,9 +204,9 @@ You can use **enableAutoPage** to enable auto page mode or disable it(enable sin
     mPageFlip.setShadowWidthOfFoldBase(5, 40, 0.4f);
   ```
 
-#### 12. Duration of flip animating
+#### 12. Duration of flip animation
 
-  You can give a duration for flip animating when you call **onFingerUp** function to handle finger up event.
+  You can give a duration for flip animation when you call **onFingerUp** function to handle the finger up event.
   
   Example:
   ```java
@@ -215,4 +215,4 @@ You can use **enableAutoPage** to enable auto page mode or disable it(enable sin
   ```
   
 ## License
-This project is licensed under the Apache License Version 2.0
+This project is licensed under the Apache License Version 2.0.
