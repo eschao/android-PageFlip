@@ -80,10 +80,10 @@ More details, please take a look **PageFlipView** in sample application.
   There are two page modes provided by **PageFlip**:
   
   * **Auto Page Mode**: In this mode, **PageFlip** will automatically determine use single page or double pages to present content on screen. That means single page is used for portrait mode and double pages is used for lanscape mode.
-  * **Single Page Mode**: No matter what screen is portait or landscape mode, **PageFlip** always use single page to show content
+  * **Single Page Mode**: No matter screen is portait or landscape mode, **PageFlip** always use single page to show content
 
 
-You can use **enableAutoPage** to enable auto page mode or disable it(enable single page mode).
+You can use **enableAutoPage** to enable auto page mode or disable it(equally enable single page mode).
 
   Example:
   ```java
@@ -103,7 +103,7 @@ You can use **enableAutoPage** to enable auto page mode or disable it(enable sin
   
 #### 3. Area of clicking to flip
   
-  You can give a ratio of width from 0 to 0.5f to set an area for reponsing click event to trigger a page flip. The default value is **0.5f**, which means the backfward flip will happen if you click the left half of screen and forward flip will start if you click the right half of screen in single page mode.
+  You can give a ratio of page width from 0 to 0.5f to set an area for reponsing click event to trigger a page flip. The default value is **0.5f**, which means the backfward flip will happen if you click the left half of screen and forward flip will start if you click the right half of screen in single page mode.
   
   Example:
   ```java
@@ -113,7 +113,7 @@ You can use **enableAutoPage** to enable auto page mode or disable it(enable sin
 
 #### 4. PageFlip listener
 
-  You can set a listener to tell **PageFlip** if the forward flip or backward flip is allowed to be happened.
+  You can set a listener to tell **PageFlip** if the forward flip or backward flip could happen.
    
   Example:
   ```java
@@ -185,7 +185,7 @@ You can use **enableAutoPage** to enable auto page mode or disable it(enable sin
   
 #### 10. Edge shadow width of fold page
 
-  When page is curled, the size of fold page will be changed following the finger movement and its edge shadow width should be changed accordingly. You can set an appropriate width range for shadow width.
+  When page is curled, the size of fold page will follow the finger movement to be changed and its edge shadow width should be changed accordingly. You can set an appropriate width range for shadow width.
   
   Example:
   ```java
@@ -206,9 +206,9 @@ You can use **enableAutoPage** to enable auto page mode or disable it(enable sin
     mPageFlip.setShadowWidthOfFoldBase(5, 40, 0.4f);
   ```
 
-#### 12. Duration of flip animation
+#### 12. Duration of flip animating
 
-  You can give a duration for flip animation when you call **onFingerUp** function to handle the finger up event.
+  You can give a duration for flip animating when you call **onFingerUp** function to handle the finger up event.
   
   Example:
   ```java
