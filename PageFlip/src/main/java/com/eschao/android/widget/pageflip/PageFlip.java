@@ -186,15 +186,15 @@ public class PageFlip {
     private int mMeshCount;
 
     // edges shadow width of back of fold page
-    private ShadowWidth mFoldBackEdgesShadowWidth;
+    private ShadowWidth mFoldEdgesShadowWidth;
     // base shadow width of front of fold page
-    private ShadowWidth mFoldFrontBaseShadowWidth;
+    private ShadowWidth mFoldBaseShadowWidth;
 
     // fold page and shadow vertexes
     private Vertexes mFoldFrontVertexes;
     private FoldBackVertexes mFoldBackVertexes;
-    private ShadowVertexes mFoldBackEdgesShadow;
-    private ShadowVertexes mFoldFrontBaseShadow;
+    private ShadowVertexes mFoldEdgesShadow;
+    private ShadowVertexes mFoldBaseShadow;
 
     // Shader program for openGL drawing
     private VertexProgram mVertexProgram;
@@ -256,8 +256,8 @@ public class PageFlip {
         mStartTouchP = new PointF();
 
         // init shadow width
-        mFoldBackEdgesShadowWidth = new ShadowWidth(5, 30, 0.25f);
-        mFoldFrontBaseShadowWidth = new ShadowWidth(2, 40, 0.4f);
+        mFoldEdgesShadowWidth = new ShadowWidth(5, 30, 0.25f);
+        mFoldBaseShadowWidth = new ShadowWidth(2, 40, 0.4f);
 
         // init shader program
         mVertexProgram = new VertexProgram();
@@ -267,16 +267,16 @@ public class PageFlip {
         // init vertexes
         mFoldFrontVertexes = new Vertexes();
         mFoldBackVertexes = new FoldBackVertexes();
-        mFoldBackEdgesShadow = new ShadowVertexes(FOLD_TOP_EDGE_SHADOW_VEX_COUNT,
-                                                  FOLD_EDGE_SHADOW_START_COLOR,
-                                                  FOLD_EDGE_SHADOW_START_ALPHA,
-                                                  FOLD_EDGE_SHADOW_END_COLOR,
-                                                  FOLD_EDGE_SHADOW_END_ALPHA);
-        mFoldFrontBaseShadow = new ShadowVertexes(0,
-                                                  FOLD_BASE_SHADOW_START_COLOR,
-                                                  FOLD_BASE_SHADOW_START_ALPHA,
-                                                  FOLD_BASE_SHADOW_END_COLOR,
-                                                  FOLD_BASE_SHADOW_END_ALPHA);
+        mFoldEdgesShadow = new ShadowVertexes(FOLD_TOP_EDGE_SHADOW_VEX_COUNT,
+                                              FOLD_EDGE_SHADOW_START_COLOR,
+                                              FOLD_EDGE_SHADOW_START_ALPHA,
+                                              FOLD_EDGE_SHADOW_END_COLOR,
+                                              FOLD_EDGE_SHADOW_END_ALPHA);
+        mFoldBaseShadow = new ShadowVertexes(0,
+                                             FOLD_BASE_SHADOW_START_COLOR,
+                                             FOLD_BASE_SHADOW_START_ALPHA,
+                                             FOLD_BASE_SHADOW_END_COLOR,
+                                             FOLD_BASE_SHADOW_END_ALPHA);
 
         // init default scroller
         mScroller = new Scroller(context);
@@ -297,8 +297,9 @@ public class PageFlip {
     public boolean enableAutoPage(boolean isAuto) {
         int newMode = isAuto ? AUTO_PAGE_MODE : SINGLE_PAGE_MODE;
         if (mPageMode != newMode) {
-
             mPageMode = newMode;
+
+            // check if we need to re-create pages
             if ((newMode == AUTO_PAGE_MODE &&
                  mViewRect.surfaceW > mViewRect.surfaceH &&
                  mPages[SECOND_PAGE] == null) ||
@@ -363,7 +364,7 @@ public class PageFlip {
      * </p>
      *
      * @param listener a listener for page flip
-     * @return
+     * @return self
      */
     public PageFlip setListener(OnPageFlipListener listener) {
         mListener = listener;
@@ -440,8 +441,8 @@ public class PageFlip {
                                               float startAlpha,
                                               float endColor,
                                               float endAlpha) {
-        mFoldBackEdgesShadow.mColor.set(startColor, startAlpha,
-                                        endColor, endAlpha);
+        mFoldEdgesShadow.mColor.set(startColor, startAlpha,
+                                    endColor, endAlpha);
         return this;
     }
 
@@ -458,8 +459,8 @@ public class PageFlip {
                                              float startAlpha,
                                              float endColor,
                                              float endAlpha) {
-        mFoldFrontBaseShadow.mColor.set(startColor, startAlpha,
-                                        endColor, endAlpha);
+        mFoldBaseShadow.mColor.set(startColor, startAlpha,
+                                   endColor, endAlpha);
         return this;
     }
 
@@ -474,7 +475,7 @@ public class PageFlip {
     public PageFlip setShadowWidthOfFoldEdges(float min,
                                               float max,
                                               float ratio) {
-        mFoldBackEdgesShadowWidth.set(min, max, ratio);
+        mFoldEdgesShadowWidth.set(min, max, ratio);
         return this;
     }
 
@@ -489,7 +490,7 @@ public class PageFlip {
     public PageFlip setShadowWidthOfFoldBase(float min,
                                              float max,
                                              float ratio) {
-        mFoldFrontBaseShadowWidth.set(min, max, ratio);
+        mFoldBaseShadowWidth.set(min, max, ratio);
         return this;
     }
 
@@ -560,7 +561,7 @@ public class PageFlip {
         glViewport(0, 0, width, height);
         mVertexProgram.initMatrix(-mViewRect.halfW, mViewRect.halfW,
                                   -mViewRect.halfH, mViewRect.halfH);
-        computeMeshVertexesCount();
+        computeMaxMeshCount();
         createPages();
     }
 
@@ -638,16 +639,16 @@ public class PageFlip {
      *         False means the movement should be ignored.
      */
 	public boolean onFingerMove(float touchX, float touchY) {
-        touchX  = mViewRect.toOpenGLX(touchX);
-        touchY  = mViewRect.toOpenGLY(touchY);
+        touchX = mViewRect.toOpenGLX(touchX);
+        touchY = mViewRect.toOpenGLY(touchY);
 
         // compute moving distance (dx, dy)
         float dy = (touchY - mStartTouchP.y);
         float dx = (touchX - mStartTouchP.x);
 
         final Page page = mPages[FIRST_PAGE];
-        final GPoint originP = page.originP;
-        final GPoint diagonalP = page.diagonalP;
+        final GLPoint originP = page.originP;
+        final GLPoint diagonalP = page.diagonalP;
 
         // begin to move
         if (mFlipState == PageFlipState.BEGIN_FLIP &&
@@ -713,7 +714,7 @@ public class PageFlip {
                 float t = mMaxT2DAngleTan;
                 mMaxT2DAngleTan = mMaxT2OAngleTan;
                 mMaxT2OAngleTan = t;
-                page.invertYOfOriginalPoint();
+                page.invertYOfOriginPoint();
             }
 
             // compute new TouchP.y
@@ -771,12 +772,12 @@ public class PageFlip {
      * @return true if animation is started or animation is not triggered
      */
     public boolean onFingerUp(float touchX, float touchY, int duration) {
-        touchX  = mViewRect.toOpenGLX(touchX);
-        touchY  = mViewRect.toOpenGLY(touchY);
+        touchX = mViewRect.toOpenGLX(touchX);
+        touchY = mViewRect.toOpenGLY(touchY);
 
         final Page page = mPages[FIRST_PAGE];
-        final GPoint originP = page.originP;
-        final GPoint diagonalP = page.diagonalP;
+        final GLPoint originP = page.originP;
+        final GLPoint diagonalP = page.diagonalP;
         final boolean hasSecondPage = mPages[SECOND_PAGE] != null;
         Point start = new Point((int)mTouchP.x, (int)mTouchP.y);
         Point end = new Point(0, 0);
@@ -858,8 +859,8 @@ public class PageFlip {
                                                     Point start,
                                                     Point end) {
         Page page = mPages[FIRST_PAGE];
-        GPoint originP = page.originP;
-        GPoint diagonalP = page.diagonalP;
+        GLPoint originP = page.originP;
+        GLPoint diagonalP = page.diagonalP;
         final boolean hasSecondPage = mPages[SECOND_PAGE] != null;
 
         // forward and backward flip have different degree
@@ -920,8 +921,8 @@ public class PageFlip {
      */
     public boolean animating() {
         final Page page = mPages[FIRST_PAGE];
-        final GPoint originP = page.originP;
-        final GPoint diagonalP = page.diagonalP;
+        final GLPoint originP = page.originP;
+        final GLPoint diagonalP = page.diagonalP;
 
         // is to end animating?
         boolean isAnimating = !mScroller.isFinished();
@@ -959,7 +960,7 @@ public class PageFlip {
                 // if the xFoldP1.x is outside page width, need to limit
                 // xFoldP1.x is in page.width and recompute new key points so
                 // that the page flip is still going forward
-                if (page.isXOutOfPage(mXFoldP1.x)) {
+                if (page.isXOutsidePage(mXFoldP1.x)) {
                     mXFoldP1.x = diagonalP.x;
                     float cosA = (mTouchP.x - originP.x) / mLenOfTouchOrigin;
                     float ratio = 1 - page.width * Math.abs(cosA) /
@@ -1103,7 +1104,7 @@ public class PageFlip {
         final boolean hasSecondPage = mPages[SECOND_PAGE] != null;
 
         // 1. draw back of fold page
-        glUseProgram(mFoldBackVertexProgram.hProgram);
+        glUseProgram(mFoldBackVertexProgram.mProgramRef);
         glActiveTexture(GL_TEXTURE0);
         mFoldBackVertexes.draw(mFoldBackVertexProgram,
                                mPages[FIRST_PAGE],
@@ -1111,7 +1112,7 @@ public class PageFlip {
                                mGradientShadowTextureID);
 
         // 2. draw unfold page and front of fold page
-        glUseProgram(mVertexProgram.hProgram);
+        glUseProgram(mVertexProgram.mProgramRef);
         glActiveTexture(GL_TEXTURE0);
         mPages[FIRST_PAGE].drawFrontPage(mVertexProgram,
                                          mFoldFrontVertexes);
@@ -1120,9 +1121,9 @@ public class PageFlip {
         }
 
         // 3. draw edge and base shadow of fold parts
-        glUseProgram(mShadowVertexProgram.hProgram);
-        mFoldFrontBaseShadow.draw(mShadowVertexProgram);
-        mFoldBackEdgesShadow.draw(mShadowVertexProgram);
+        glUseProgram(mShadowVertexProgram.mProgramRef);
+        mFoldBaseShadow.draw(mShadowVertexProgram);
+        mFoldEdgesShadow.draw(mShadowVertexProgram);
     }
 
     /**
@@ -1130,8 +1131,8 @@ public class PageFlip {
      */
 	public void drawPageFrame() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glUseProgram(mVertexProgram.hProgram);
-        glUniformMatrix4fv(mVertexProgram.hMVPMatrix, 1, false,
+        glUseProgram(mVertexProgram.mProgramRef);
+        glUniformMatrix4fv(mVertexProgram.mMVPMatrixLoc, 1, false,
                            VertexProgram.MVPMatrix, 0);
         glActiveTexture(GL_TEXTURE0);
 
@@ -1147,7 +1148,7 @@ public class PageFlip {
     /**
      * Compute max mesh count and allocate vertexes buffer
      */
-    private void computeMeshVertexesCount() {
+    private void computeMaxMeshCount() {
         // compute max mesh count
         int maxMeshCount = (int)mViewRect.minOfWH() / mPixelsOfMesh;
 
@@ -1159,8 +1160,8 @@ public class PageFlip {
         // init vertexes buffers
         mFoldBackVertexes.set(maxMeshCount + 2);
         mFoldFrontVertexes.set((maxMeshCount << 1) + 8, 3, true);
-        mFoldBackEdgesShadow.set(maxMeshCount + 2);
-        mFoldFrontBaseShadow.set(maxMeshCount + 2);
+        mFoldEdgesShadow.set(maxMeshCount + 2);
+        mFoldBaseShadow.set(maxMeshCount + 2);
     }
 
     /**
@@ -1236,9 +1237,9 @@ public class PageFlip {
         final Page page = mPages[FIRST_PAGE];
         final float oY = page.originP.y;
         final float dY = page.diagonalP.y;
-        final float cDY = page.diagonalP.tY;
-        final float cOY = page.originP.tY;
-        final float cOX = page.originP.tX;
+        final float cDY = page.diagonalP.texY;
+        final float cOY = page.originP.texY;
+        final float cOX = page.originP.texX;
 
         // compute the point on back page half cylinder
         mFoldBackVertexes.reset();
@@ -1263,8 +1264,8 @@ public class PageFlip {
                          .toFloatBuffer();
 
         // compute shadow width
-        float sw = -mFoldBackEdgesShadowWidth.width(mR);
-        float bw = mFoldFrontBaseShadowWidth.width(mR);
+        float sw = -mFoldEdgesShadowWidth.width(mR);
+        float bw = mFoldBaseShadowWidth.width(mR);
         if (page.originP.x < 0) {
             sw = -sw;
             bw = -bw;
@@ -1272,14 +1273,14 @@ public class PageFlip {
 
         // fold base shadow
         float bx0 = mFoldBackVertexes.mVertexes[0];
-        mFoldFrontBaseShadow.setVertexes(0, bx0, oY, bx0 + bw, oY)
-                            .setVertexes(8, bx0, dY, bx0 + bw, dY)
-                            .toFloatBuffer(16);
+        mFoldBaseShadow.setVertexes(0, bx0, oY, bx0 + bw, oY)
+                       .setVertexes(8, bx0, dY, bx0 + bw, dY)
+                       .toFloatBuffer(16);
 
         // fold edge shadow
-        mFoldBackEdgesShadow.setVertexes(0, tx0, oY, tx0 + sw, oY)
-                            .setVertexes(8, tx0, dY, tx0 + sw, dY)
-                            .toFloatBuffer(16);
+        mFoldEdgesShadow.setVertexes(0, tx0, oY, tx0 + sw, oY)
+                        .setVertexes(8, tx0, dY, tx0 + sw, dY)
+                        .toFloatBuffer(16);
 
         // fold front
         mFoldFrontVertexes.reset();
@@ -1387,7 +1388,7 @@ public class PageFlip {
         // compute coordinates of fold shadow edge
         float sRadian = (sx - tX) / mR;
         sx = (float)(tX + mR * Math.sin(sRadian));
-        mFoldBackEdgesShadow.addVertexes(isX, cx, cy,
+        mFoldEdgesShadow.addVertexes(isX, cx, cy,
                                          sx * cosA + sy * sinA + oX,
                                          sy * cosA - sx * sinA + oY);
     }
@@ -1465,10 +1466,8 @@ public class PageFlip {
         float cx = x * cosA + y * sinA + oX;
         float cy = y * cosA - x * sinA + oY;
         mFoldFrontVertexes.addVertex(cx, cy, cz, coordX, coordY);
-        mFoldFrontBaseShadow.addVertexes(isX, cx, cy,
+        mFoldBaseShadow.addVertexes(isX, cx, cy,
                                          cx + baseWcosA, cy - baseWsinA);
-        //String s = isX ? "[X]" : "[Y]";
-        //Log.d(TAG, s+" v: "+cx+", "+cy+", "+cz);
     }
 
     /**
@@ -1574,7 +1573,7 @@ public class PageFlip {
 
         // add start/end vertex into base shadow buffer, it will be linked with
         // forward vertexes to draw base shadow
-        mFoldFrontBaseShadow.addVertexes(false, bx1, dY, bx2, dY);
+        mFoldBaseShadow.addVertexes(false, bx1, dY, bx2, dY);
     }
 
     /**
@@ -1585,9 +1584,9 @@ public class PageFlip {
         final float oX = page.originP.x;
         final float oY = page.originP.y;
         final float dY = page.diagonalP.y;
-        final float cOX = page.originP.tX;
-        final float cOY = page.originP.tY;
-        final float cDY = page.diagonalP.tY;
+        final float cOX = page.originP.texX;
+        final float cOY = page.originP.texY;
+        final float cDY = page.diagonalP.texY;
         final float height = page.height;
         final float d2oY = dY - oY;
 
@@ -1598,8 +1597,8 @@ public class PageFlip {
         // need to translate before rotate, and then translate back
         int count = mMeshCount;
         float xFoldP1 = (mXFoldP1.x - oX) * cosA;
-        float edgeW = mFoldBackEdgesShadowWidth.width(mR);
-        float baseW = mFoldFrontBaseShadowWidth.width(mR);
+        float edgeW = mFoldEdgesShadowWidth.width(mR);
+        float baseW = mFoldBaseShadowWidth.width(mR);
         float baseWcosA = baseW * cosA;
         float baseWsinA = baseW * sinA;
         float edgeY = oY > 0 ? edgeW : -edgeW;
@@ -1608,8 +1607,8 @@ public class PageFlip {
         float stepSX = edgeX / count;
 
         // reset vertexes buffer counter
-        mFoldBackEdgesShadow.reset();
-        mFoldFrontBaseShadow.reset();
+        mFoldEdgesShadow.reset();
+        mFoldBaseShadow.reset();
         mFoldFrontVertexes.reset();
         mFoldBackVertexes.reset();
 
@@ -1678,9 +1677,10 @@ public class PageFlip {
                     float tx = oX + 2 * mKValue * (mYFoldP.y - dY);
                     float ty = dY + mKValue * (tx - oX);
                     mFoldBackVertexes.addVertex(tx, ty, 1, 0, cOX, cDY);
+
                     float tsx = tx - sx;
                     float tsy = dY + mKValue * (tsx - oX);
-                    mFoldBackEdgesShadow.addVertexes(false, tx, ty, tsx, tsy);
+                    mFoldEdgesShadow.addVertexes(false, tx, ty, tsx, tsy);
                 }
                 // case 2: compute mapping point of diagonalP
                 else {
@@ -1741,7 +1741,6 @@ public class PageFlip {
         x = mXFoldP.x - oX - stepX;
         y = mYFoldP.y - oY - stepY;
         int j = 0;
-        //Log.d(TAG, "===========================");
         for (; j < count && Math.abs(y) < height; ++j, x -= stepX, y -= stepY) {
             computeFrontVertex(true, x, 0, xFoldP1, sinA, cosA,
                                baseWcosA, baseWsinA,
@@ -1784,8 +1783,8 @@ public class PageFlip {
         }
 
         // set uniform Z value for shadow vertexes
-        mFoldBackEdgesShadow.vertexZ = mFoldFrontVertexes.getFloatAt(2);
-        mFoldFrontBaseShadow.vertexZ = -0.5f;
+        mFoldEdgesShadow.vertexZ = mFoldFrontVertexes.getFloatAt(2);
+        mFoldBaseShadow.vertexZ = -0.5f;
 
         // add two vertexes to connect with the unfold front page
         page.buildVertexesOfPageWhenSlope(mFoldFrontVertexes, mXFoldP1, mYFoldP1,
@@ -1793,10 +1792,10 @@ public class PageFlip {
         mFoldFrontVertexes.toFloatBuffer();
 
         // compute vertexes of fold edge shadow
-        mFoldFrontBaseShadow.toFloatBuffer();
+        mFoldBaseShadow.toFloatBuffer();
         computeVertexesOfFoldTopEdgeShadow(mTouchP.x, mTouchP.y, sinA, cosA,
                                            -edgeX, edgeY);
-        mFoldBackEdgesShadow.toFloatBuffer();
+        mFoldEdgesShadow.toFloatBuffer();
     }
 
     /**
@@ -1818,7 +1817,7 @@ public class PageFlip {
         float r = 0;
         float dr = (float)(Math.PI / (FOLD_TOP_EDGE_SHADOW_VEX_COUNT - 2));
         int size = FOLD_TOP_EDGE_SHADOW_VEX_COUNT / 2;
-        int j = mFoldBackEdgesShadow.mMaxBackward;
+        int j = mFoldEdgesShadow.mMaxBackward;
 
         //                 ^ Y                             __ |
         //      TouchP+    |                             /    |
@@ -1839,9 +1838,9 @@ public class PageFlip {
             float y = (float)(sy * Math.sin(r));
 
             // rotate -2A and then translate to touchP
-            mFoldBackEdgesShadow.setVertexes(j, x0, y0,
-                                             x * cos2A + y * sin2A + x0,
-                                             y * cos2A - x * sin2A + y0);
+            mFoldEdgesShadow.setVertexes(j, x0, y0,
+                                         x * cos2A + y * sin2A + x0,
+                                         y * cos2A - x * sin2A + y0);
         }
     }
 
@@ -1897,8 +1896,8 @@ public class PageFlip {
      * Debug information
      */
     private void debugInfo() {
-        final GPoint originP = mPages[FIRST_PAGE].originP;
-        final GPoint diagonalP = mPages[FIRST_PAGE].diagonalP;
+        final GLPoint originP = mPages[FIRST_PAGE].originP;
+        final GLPoint diagonalP = mPages[FIRST_PAGE].diagonalP;
 
         Log.d(TAG, "************************************");
         Log.d(TAG, " Mesh Count:    " + mMeshCount);

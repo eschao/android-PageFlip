@@ -168,7 +168,7 @@ public class DoublePagesRender extends PageRender {
             // animation is finished
             else {
                 // should handle forward flip to update page number and exchange
-                // textures between first and second pages. Don'top have to handle
+                // textures between first and second pages. Don't have to handle
                 // backward flip since there is no such state happened in double
                 // page mode
                 if (mPageFlip.getFlipState() == PageFlipState.END_WITH_FORWARD)
@@ -272,7 +272,7 @@ public class DoublePagesRender extends PageRender {
     }
 
     /**
-     * Don'top need to handle backward flip
+     * Don't need to handle backward flip
      *
      * @return always false
      */

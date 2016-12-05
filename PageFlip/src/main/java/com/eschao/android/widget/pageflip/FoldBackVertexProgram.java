@@ -35,16 +35,16 @@ public class FoldBackVertexProgram extends VertexProgram {
     final static String VAR_MASK_COLOR     = "u_maskColor";
     final static String VAR_SHADOW_TEXTURE = "u_shadow";
 
-    int hShadow;
-    int hMaskColor;
-    int hTexXOffset;
+    int mShadowLoc;
+    int mMaskColorLoc;
+    int mTexXOffsetLoc;
 
     public FoldBackVertexProgram() {
         super();
 
-        hShadow = INVALID_HANDLE;
-        hMaskColor = INVALID_HANDLE;
-        hTexXOffset = INVALID_HANDLE;
+        mShadowLoc = INVALID_GL_HANDLE;
+        mMaskColorLoc = INVALID_GL_HANDLE;
+        mTexXOffsetLoc = INVALID_GL_HANDLE;
     }
 
     /**
@@ -68,10 +68,11 @@ public class FoldBackVertexProgram extends VertexProgram {
     protected void getVarsLocation() {
         super.getVarsLocation();
 
-        if (hProgram != 0) {
-            hShadow = glGetUniformLocation(hProgram, VAR_SHADOW_TEXTURE);
-            hMaskColor = glGetUniformLocation(hProgram, VAR_MASK_COLOR);
-            hTexXOffset = glGetUniformLocation(hProgram, VAR_TEXTRUE_OFFSET);
+        if (mProgramRef != 0) {
+            mShadowLoc = glGetUniformLocation(mProgramRef, VAR_SHADOW_TEXTURE);
+            mMaskColorLoc = glGetUniformLocation(mProgramRef, VAR_MASK_COLOR);
+            mTexXOffsetLoc = glGetUniformLocation(mProgramRef,
+                                                  VAR_TEXTRUE_OFFSET);
         }
     }
 
@@ -81,8 +82,8 @@ public class FoldBackVertexProgram extends VertexProgram {
     public void delete() {
         super.delete();
 
-        hShadow = INVALID_HANDLE;
-        hMaskColor = INVALID_HANDLE;
-        hTexXOffset = INVALID_HANDLE;
+        mShadowLoc = INVALID_GL_HANDLE;
+        mMaskColorLoc = INVALID_GL_HANDLE;
+        mTexXOffsetLoc = INVALID_GL_HANDLE;
     }
 }

@@ -219,17 +219,6 @@ public class SinglePageRender extends PageRender {
      */
     public boolean canFlipForward() {
         return (mPageNo < MAX_PAGES);
-        /*
-        if (mPageNo >= MAX_PAGES) {
-            Toast.makeText(mContext,
-                           "This is the last page!",
-                           Toast.LENGTH_SHORT)
-                 .show();
-            return false;
-        }
-        else {
-            return true;
-        }*/
     }
 
     /**
@@ -243,12 +232,6 @@ public class SinglePageRender extends PageRender {
             return true;
         }
         else {
-            /*
-            Toast.makeText(mContext,
-                           "This is the first page!",
-                           Toast.LENGTH_SHORT)
-                 .show();
-                 */
             return false;
         }
     }

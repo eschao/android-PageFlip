@@ -238,32 +238,28 @@ class ShadowVertexes {
     public ShadowVertexes addVertexes(boolean isForward,
                                       float startX, float startY,
                                       float endX, float endY) {
-        return isForward ? addVertexesForward(startX, startY, endX, endY) :
+        return isForward ?
+               addVertexesForward(startX, startY, endX, endY) :
                addVertexesBackward(startX, startY, endX, endY);
     }
 
     /**
      * Put data from float array to float buffer
-     *
-     * @return self
      */
-    public ShadowVertexes toFloatBuffer() {
+    public void toFloatBuffer() {
         mVertexesSize = (mForward - mBackward) / 4;
         mVertexesBuffer.put(mVertexes, mBackward, mForward - mBackward)
                        .position(0);
-        return this;
     }
 
     /**
      * put given length data from float array to float buffer
      *
      * @param length data length
-     * @return self
      */
-    public ShadowVertexes toFloatBuffer(int length) {
+    public void toFloatBuffer(int length) {
         mVertexesBuffer.put(mVertexes, 0, length).position(0);
         mVertexesSize = length / 4;
-        return this;
     }
 
     /**
@@ -273,10 +269,10 @@ class ShadowVertexes {
      */
     public void draw(ShadowVertexProgram program) {
         if (mVertexesSize > 0) {
-            glUniformMatrix4fv(program.hMVPMatrix, 1, false,
+            glUniformMatrix4fv(program.mMVPMatrixLoc, 1, false,
                                VertexProgram.MVPMatrix, 0);
 
-            glUniform1f(program.hVertexZ, vertexZ);
+            glUniform1f(program.mVertexZLoc, vertexZ);
 
             // disable texture, and enable blend
             glDisable(GL_TEXTURE_2D);
@@ -284,9 +280,9 @@ class ShadowVertexes {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
             // draw shadow
-            glVertexAttribPointer(program.hVertexPosition, 4, GL_FLOAT, false, 0,
+            glVertexAttribPointer(program.mVertexPosLoc, 4, GL_FLOAT, false, 0,
                                   mVertexesBuffer);
-            glEnableVertexAttribArray(program.hVertexPosition);
+            glEnableVertexAttribArray(program.mVertexPosLoc);
             glDrawArrays(GL_TRIANGLE_STRIP, 0, mVertexesSize);
 
             glDisable(GL_BLEND);

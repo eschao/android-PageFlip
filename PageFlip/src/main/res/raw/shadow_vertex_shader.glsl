@@ -1,8 +1,7 @@
+precision mediump float;
 uniform mat4 u_MVPMatrix;
 uniform float u_vexZ;
-
 attribute vec4 a_vexPosition;
-
 varying vec4 v_texColor;
 
 void main() {

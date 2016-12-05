@@ -186,11 +186,11 @@ public class Page {
      * </pre>
      * <p>if origin(x, y) is 1, the diagonal(x, y) is 0</p>
      */
-    GPoint originP;
-    GPoint diagonalP;
+    GLPoint originP;
+    GLPoint diagonalP;
 
-    private GPoint mXFoldP;
-    private GPoint mYFoldP;
+    private GLPoint mXFoldP;
+    private GLPoint mYFoldP;
 
     // vertexes and texture coordinates buffer for full page
     private FloatBuffer mFullPageVexBuf;
@@ -241,10 +241,10 @@ public class Page {
         mFrontVertexSize = 0;
         mApexOrderIndex = 0;
 
-        mXFoldP = new GPoint();
-        mYFoldP = new GPoint();
-        originP = new GPoint();
-        diagonalP = new GPoint();
+        mXFoldP = new GLPoint();
+        mYFoldP = new GLPoint();
+        originP = new GLPoint();
+        diagonalP = new GLPoint();
 
         maskColor = new float[][] {new float[] {0, 0, 0},
                                    new float[] {0, 0, 0},
@@ -446,12 +446,12 @@ public class Page {
     }
 
     /**
-     * Is given x coordinate out of page width?
+     * Is given x coordinate outside page width?
      *
      * @param x x coordinate
      * @return true if given x is not in page
      */
-    boolean isXOutOfPage(float x) {
+    boolean isXOutsidePage(float x) {
         return originP.x < 0 ? x > diagonalP.x : x < diagonalP.x;
     }
 
@@ -502,24 +502,24 @@ public class Page {
         computeIndexOfApexOrder();
 
         // set texture coordinates
-        originP.tX = (originP.x - left) / texWidth;
-        originP.tY = (top - originP.y) / texHeight;
-        diagonalP.tX = (diagonalP.x - left) / texWidth;
-        diagonalP.tY = (top - diagonalP.y) / texHeight;
+        originP.texX = (originP.x - left) / texWidth;
+        originP.texY = (top - originP.y) / texHeight;
+        diagonalP.texX = (diagonalP.x - left) / texWidth;
+        diagonalP.texY = (top - diagonalP.y) / texHeight;
         return this;
     }
 
     /**
      * Invert Y coordinate of original point and diagonal point
      */
-    void invertYOfOriginalPoint() {
+    void invertYOfOriginPoint() {
         float t = originP.y;
         originP.y = diagonalP.y;
         diagonalP.y = t;
 
-        t = originP.tY;
-        originP.tY = diagonalP.tY;
-        diagonalP.tY = t;
+        t = originP.texY;
+        originP.texY = diagonalP.texY;
+        diagonalP.texY = t;
 
         // re-compute index for apex order since original point is changed
         computeIndexOfApexOrder();
@@ -634,18 +634,18 @@ public class Page {
     public void drawFrontPage(VertexProgram program,
                               Vertexes vertexes) {
         // 1. draw unfold part and curled part with the first texture
-        glUniformMatrix4fv(program.hMVPMatrix, 1, false,
+        glUniformMatrix4fv(program.mMVPMatrixLoc, 1, false,
                            VertexProgram.MVPMatrix, 0);
         glBindTexture(GL_TEXTURE_2D, mTexIDs[FIRST_TEXTURE_ID]);
-        glUniform1i(program.hTexture, 0);
+        glUniform1i(program.mTextureLoc, 0);
         vertexes.drawWith(GL_TRIANGLE_STRIP,
-                          program.hVertexPosition,
-                          program.hTextureCoord,
+                          program.mVertexPosLoc,
+                          program.mTexCoordLoc,
                           0, mFrontVertexSize);
 
         // 2. draw the second texture
         glBindTexture(GL_TEXTURE_2D, mTexIDs[SECOND_TEXTURE_ID]);
-        glUniform1i(program.hTexture, 0);
+        glUniform1i(program.mTextureLoc, 0);
         glDrawArrays(GL_TRIANGLE_STRIP,
                      mFrontVertexSize,
                      vertexes.mVertexesSize - mFrontVertexSize);
@@ -671,15 +671,15 @@ public class Page {
      */
     private void drawFullPage(VertexProgram program, int textureID) {
         glBindTexture(GL_TEXTURE_2D, textureID);
-        glUniform1i(program.hTexture, 0);
+        glUniform1i(program.mTextureLoc, 0);
 
-        glVertexAttribPointer(program.hVertexPosition, 3, GL_FLOAT, false, 0,
+        glVertexAttribPointer(program.mVertexPosLoc, 3, GL_FLOAT, false, 0,
                               mFullPageVexBuf);
-        glEnableVertexAttribArray(program.hVertexPosition);
+        glEnableVertexAttribArray(program.mVertexPosLoc);
 
-        glVertexAttribPointer(program.hTextureCoord, 2, GL_FLOAT, false, 0,
+        glVertexAttribPointer(program.mTexCoordLoc, 2, GL_FLOAT, false, 0,
                               mFullPageTexCoordsBuf);
-        glEnableVertexAttribArray(program.hTextureCoord);
+        glEnableVertexAttribArray(program.mTexCoordLoc);
 
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     }
@@ -737,12 +737,12 @@ public class Page {
         int index = 4;
 
         // compute xFoldX and yFoldY points
-        if (!isXOutOfPage(xFoldP1.x)) {
+        if (!isXOutsidePage(xFoldP1.x)) {
             // use the case B of vertex order to draw page
             index = 1;
             float cx = textureX(xFoldP1.x);
-            mXFoldP.set(xFoldP1.x, originP.y, 0, cx, originP.tY);
-            mYFoldP.set(xFoldP1.x, diagonalP.y, 0, cx, diagonalP.tY);
+            mXFoldP.set(xFoldP1.x, originP.y, 0, cx, originP.texY);
+            mYFoldP.set(xFoldP1.x, diagonalP.y, 0, cx, diagonalP.texY);
         }
 
         // get apex order and fold vertex order
@@ -802,27 +802,27 @@ public class Page {
         // compute xFoldX point
         float halfH = height * 0.5f;
         int index = 0;
-        mXFoldP.set(xFoldP1.x, originP.y, 0, textureX(xFoldP1.x), originP.tY);
-        if (isXOutOfPage(xFoldP1.x)) {
+        mXFoldP.set(xFoldP1.x, originP.y, 0, textureX(xFoldP1.x), originP.texY);
+        if (isXOutsidePage(xFoldP1.x)) {
             index = 2;
             mXFoldP.x = diagonalP.x;
             mXFoldP.y = originP.y + (xFoldP1.x - diagonalP.x) / kValue;
-            mXFoldP.tX = diagonalP.tX;
-            mXFoldP.tY = textureY(mXFoldP.y);
+            mXFoldP.texX = diagonalP.texX;
+            mXFoldP.texY = textureY(mXFoldP.y);
         }
 
         // compute yFoldY point
-        mYFoldP.set(originP.x, yFoldP1.y, 0, originP.tX, textureY(yFoldP1.y));
+        mYFoldP.set(originP.x, yFoldP1.y, 0, originP.texX, textureY(yFoldP1.y));
         if (Math.abs(yFoldP1.y) > halfH)  {
             index++;
             mYFoldP.x = originP.x + kValue * (yFoldP1.y - diagonalP.y);
-            if (isXOutOfPage(mYFoldP.x)) {
+            if (isXOutsidePage(mYFoldP.x)) {
                 index++;
             }
             else {
                 mYFoldP.y = diagonalP.y;
-                mYFoldP.tX = textureX(mYFoldP.x);
-                mYFoldP.tY = diagonalP.tY;
+                mYFoldP.texX = textureX(mYFoldP.x);
+                mYFoldP.texY = diagonalP.texY;
             }
         }
 

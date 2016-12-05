@@ -44,19 +44,19 @@ class VertexProgram extends GLProgram {
     final static float[] MVPMatrix = new float[16];
 
     // variable handles after compiled & linked shader scripts
-    int hMVPMatrix;
-    int hVertexPosition;
-    int hTextureCoord;
-    int hTexture;
+    int mMVPMatrixLoc;
+    int mVertexPosLoc;
+    int mTexCoordLoc;
+    int mTextureLoc;
 
     public VertexProgram() {
         super();
 
         // init with invalid value
-        hTexture = INVALID_HANDLE;
-        hMVPMatrix = INVALID_HANDLE;
-        hTextureCoord = INVALID_HANDLE;
-        hVertexPosition = INVALID_HANDLE;
+        mTextureLoc = INVALID_GL_HANDLE;
+        mMVPMatrixLoc = INVALID_GL_HANDLE;
+        mTexCoordLoc = INVALID_GL_HANDLE;
+        mVertexPosLoc = INVALID_GL_HANDLE;
     }
 
     /**
@@ -75,11 +75,11 @@ class VertexProgram extends GLProgram {
      * Get variable handles after linked shader program
      */
     protected void getVarsLocation() {
-        if (hProgram != 0) {
-            hVertexPosition = glGetAttribLocation(hProgram, VAR_VERTEX_POS);
-            hTextureCoord = glGetAttribLocation(hProgram, VAR_TEXTURE_COORD);
-            hMVPMatrix = glGetUniformLocation(hProgram, VAR_MVP_MATRIX);
-            hTexture = glGetUniformLocation(hProgram, VAR_TEXTURE);
+        if (mProgramRef != 0) {
+            mVertexPosLoc = glGetAttribLocation(mProgramRef, VAR_VERTEX_POS);
+            mTexCoordLoc = glGetAttribLocation(mProgramRef, VAR_TEXTURE_COORD);
+            mMVPMatrixLoc = glGetUniformLocation(mProgramRef, VAR_MVP_MATRIX);
+            mTextureLoc = glGetUniformLocation(mProgramRef, VAR_TEXTURE);
         }
     }
 
@@ -89,10 +89,10 @@ class VertexProgram extends GLProgram {
     public void delete() {
         super.delete();
 
-        hTexture = INVALID_HANDLE;
-        hMVPMatrix = INVALID_HANDLE;
-        hTextureCoord = INVALID_HANDLE;
-        hVertexPosition = INVALID_HANDLE;
+        mTextureLoc = INVALID_GL_HANDLE;
+        mMVPMatrixLoc = INVALID_GL_HANDLE;
+        mTexCoordLoc = INVALID_GL_HANDLE;
+        mVertexPosLoc = INVALID_GL_HANDLE;
     }
 
     /**

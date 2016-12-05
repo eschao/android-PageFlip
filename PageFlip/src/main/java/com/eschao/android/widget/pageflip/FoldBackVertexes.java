@@ -50,55 +50,38 @@ final class FoldBackVertexes extends Vertexes {
      * Set vertex buffer with given mesh count
      *
      * @param meshCount mesh count
-     * @return self
      */
-    public FoldBackVertexes set(int meshCount) {
+    public void set(int meshCount) {
         super.set(meshCount << 1, 4, true);
         mNext = 0;
-        return this;
     }
 
     /**
      * Set mask alpha
      *
      * @param alpha mask alpha, value is [0 .. 255]
-     * @return self
      */
-    public FoldBackVertexes setMaskAlpha(int alpha) {
+    public void setMaskAlpha(int alpha) {
         if (alpha < 0 || alpha > 255) {
-            throw new IllegalArgumentException("Alpha: " + alpha + "is out of " +
-                                               "[0 .. 255]!");
+            throw new IllegalArgumentException("Alpha: " + alpha + "is out of "
+                                               + "[0 .. 255]!");
         }
 
         mMaskAlpha = alpha / 255.0f;
-        return this;
     }
 
     /**
      * set mask alpha
      *
      * @param alpha mask alpha, value is [0 .. 1]
-     * @return self
      */
-    public FoldBackVertexes setMaskAlpha(float alpha) {
+    public void setMaskAlpha(float alpha) {
         if (alpha < 0 || alpha > 1) {
-            throw new IllegalArgumentException("Alpha: " + alpha + "is out of " +
-                                               "[0 .. 1]!");
+            throw new IllegalArgumentException("Alpha: " + alpha + "is out of "
+                                               + "[0 .. 1]!");
         }
 
         mMaskAlpha = alpha;
-        return this;
-    }
-
-    /**
-     * Put all data from float array to float buffer
-     *
-     * @return self
-     */
-    public FoldBackVertexes toFloatBuffer() {
-        // fix coordinate x of texture for shadow of fold back
-        super.toFloatBuffer();
-        return this;
     }
 
     /**
@@ -113,29 +96,29 @@ final class FoldBackVertexes extends Vertexes {
                      Page page,
                      boolean hasSecondPage,
                      int gradientShadowId) {
-        glUniformMatrix4fv(program.hMVPMatrix, 1, false,
+        glUniformMatrix4fv(program.mMVPMatrixLoc, 1, false,
                            VertexProgram.MVPMatrix, 0);
 
         // load fold back texture
         glBindTexture(GL_TEXTURE_2D, page.getBackTextureID());
-        glUniform1i(program.hTexture, 0);
+        glUniform1i(program.mTextureLoc, 0);
 
         // load gradient shadow texture
         glActiveTexture(GLES20.GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, gradientShadowId);
-        glUniform1i(program.hShadow, 1);
+        glUniform1i(program.mShadowLoc, 1);
 
         // set x offset of texture coordinate. In single page mode, the value is
         // set 0 to draw the back texture with x coordinate inversely against
         // the first texture since they are using the same texture, but in
         // double page mode, the back texture is different with the first one,
         // it is the next page content texture and should be drawn in the same
-        // order with the first texture, so the value is set 1. Computing
+        // order with the first texture, so the value is set 1. For computing
         // details, please see the shader script.
-        glUniform1f(program.hTexXOffset, hasSecondPage ? 1.0f : 0);
+        glUniform1f(program.mTexXOffsetLoc, hasSecondPage ? 1.0f : 0);
 
         // set mask color and alpha
-        glUniform4f(program.hMaskColor,
+        glUniform4f(program.mMaskColorLoc,
                     page.maskColor[0][0],
                     page.maskColor[0][1],
                     page.maskColor[0][2],
@@ -143,7 +126,7 @@ final class FoldBackVertexes extends Vertexes {
 
         // draw triangles
         drawWith(GL_TRIANGLE_STRIP,
-                 program.hVertexPosition,
-                 program.hTextureCoord);
+                 program.mVertexPosLoc,
+                 program.mTexCoordLoc);
     }
 }

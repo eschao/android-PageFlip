@@ -36,9 +36,9 @@ public class ShadowVertexProgram extends GLProgram {
     final static String VAR_VERTEX_Z    = "u_vexZ";
     final static String VAR_VERTEX_POS  = "a_vexPosition";
 
-    int hMVPMatrix;
-    int hVertexZ;
-    int hVertexPosition;
+    int mMVPMatrixLoc;
+    int mVertexZLoc;
+    int mVertexPosLoc;
 
     /**
      * Constructor
@@ -46,9 +46,9 @@ public class ShadowVertexProgram extends GLProgram {
     public ShadowVertexProgram() {
         super();
 
-        hMVPMatrix = INVALID_HANDLE;
-        hVertexZ = INVALID_HANDLE;
-        hVertexPosition = INVALID_HANDLE;
+        mMVPMatrixLoc = INVALID_GL_HANDLE;
+        mVertexZLoc = INVALID_GL_HANDLE;
+        mVertexPosLoc = INVALID_GL_HANDLE;
     }
 
     /**
@@ -71,10 +71,10 @@ public class ShadowVertexProgram extends GLProgram {
      * Get variable handles from linked shader program
      */
     protected void getVarsLocation() {
-        if (hProgram != 0) {
-            hVertexZ = glGetUniformLocation(hProgram, VAR_VERTEX_Z);
-            hVertexPosition = glGetAttribLocation(hProgram, VAR_VERTEX_POS);
-            hMVPMatrix = glGetUniformLocation(hProgram, VAR_MVP_MATRIX);
+        if (mProgramRef != 0) {
+            mVertexZLoc = glGetUniformLocation(mProgramRef, VAR_VERTEX_Z);
+            mVertexPosLoc = glGetAttribLocation(mProgramRef, VAR_VERTEX_POS);
+            mMVPMatrixLoc = glGetUniformLocation(mProgramRef, VAR_MVP_MATRIX);
         }
     }
 
@@ -84,8 +84,8 @@ public class ShadowVertexProgram extends GLProgram {
     public void delete() {
         super.delete();
 
-        hMVPMatrix = INVALID_HANDLE;
-        hVertexZ = INVALID_HANDLE;
-        hVertexPosition = INVALID_HANDLE;
+        mMVPMatrixLoc = INVALID_GL_HANDLE;
+        mVertexZLoc = INVALID_GL_HANDLE;
+        mVertexPosLoc = INVALID_GL_HANDLE;
     }
 }

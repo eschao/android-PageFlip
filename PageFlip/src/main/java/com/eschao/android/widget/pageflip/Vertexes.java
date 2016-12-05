@@ -310,19 +310,19 @@ class Vertexes {
     }
 
     /**
-     * Add GPoint to float buffer
+     * Add GLPoint to float buffer
      *
-     * @param point GPoint object
+     * @param point GLPoint object
      * @return self
      */
-    public Vertexes addVertex(GPoint point) {
+    public Vertexes addVertex(GLPoint point) {
         int j = mNext / mSizeOfPerVex * 2;
         mVertexes[mNext++] = point.x;
         mVertexes[mNext++] = point.y;
         mVertexes[mNext++] = point.z;
 
-        mTextureCoords[j++] = point.tX;
-        mTextureCoords[j] = point.tY;
+        mTextureCoords[j++] = point.texX;
+        mTextureCoords[j] = point.texY;
         return this;
     }
 
@@ -331,9 +331,8 @@ class Vertexes {
      *
      * @param offset data start offset in float array
      * @param length data length to be put
-     * @return self
      */
-    public Vertexes toFloatBuffer(int offset, int length) {
+    public void toFloatBuffer(int offset, int length) {
         mVertexesBuf.put(mVertexes, offset, length).position(0);
         mVertexesSize = length / mSizeOfPerVex;
 
@@ -343,7 +342,6 @@ class Vertexes {
             final int l = mVertexesSize * 2;
             mTextureCoordsBuf.put(mTextureCoords, o, l).position(0);
         }
-        return this;
     }
 
     /**
@@ -352,10 +350,8 @@ class Vertexes {
      * The offset is 0 and the length is determined by mNext which is increased
      * after calling {@link #addVertex}
      * </p>
-     *
-     * @return self
      */
-    public Vertexes toFloatBuffer() {
+    public void toFloatBuffer() {
         mVertexesBuf.put(mVertexes, 0, mNext).position(0);
         mVertexesSize = mNext / mSizeOfPerVex;
 
@@ -363,15 +359,14 @@ class Vertexes {
             mTextureCoordsBuf.put(mTextureCoords, 0, mVertexesSize << 1)
                              .position(0);
         }
-        return this;
     }
 
     /**
      * Draw vertexes
      *
      * @param type openGL drawing type: TRIANGLE, STRIP, FAN
-     * @param hVertexPos vertex handle in shader program
-     * @param hTextureCoord texture handle in shader program
+     * @param hVertexPos vertex position var in shader program
+     * @param hTextureCoord texture var in shader program
      */
     public void drawWith(int type, int hVertexPos, int hTextureCoord) {
         // pass vertex data
@@ -392,8 +387,8 @@ class Vertexes {
      * Draw vertexes with given offset and length
      *
      * @param type openGL drawing type: TRIANGLE, STRIP, FAN
-     * @param hVertexPos vertex handle in shader program
-     * @param hTextureCoord texture handle in shader program
+     * @param hVertexPos vertex var in shader program
+     * @param hTextureCoord texture var in shader program
      * @param offset vertex start offset in buffer
      * @param length vertex length to be drawn
      */

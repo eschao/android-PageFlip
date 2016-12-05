@@ -16,23 +16,23 @@
 package com.eschao.android.widget.pageflip;
 
 /**
- * GPoint includes (x,y,z) in OpenGL coordinate system and its texture
- * coordinates (tX, tY)
+ * GLPoint includes (x,y,z) in OpenGL coordinate system and its texture
+ * coordinates (texX, texY)
  *
  * @author eschao
  */
-public final class GPoint {
+public final class GLPoint {
     // 3D coordinate
     float x;
     float y;
     float z;
 
     // texutre coordinate
-    float tX;
-    float tY;
+    float texX;
+    float texY;
 
     /**
-     * Set GPoint with given values
+     * Set GLPoint with given values
      *
      * @param x x coordinate
      * @param y y coordinate
@@ -44,7 +44,7 @@ public final class GPoint {
         this.x = x;
         this.y = y;
         this.z = z;
-        this.tX = tX;
-        this.tY = tY;
+        this.texX = tX;
+        this.texY = tY;
     }
 }

@@ -35,11 +35,11 @@ import static android.opengl.GLES20.glUseProgram;
 
 public class GLProgram {
 
-    // invalid handle
-    protected final int INVALID_HANDLE = -1;
+    // invalid GL getShaderRef including program reference and variable location
+    protected final int INVALID_GL_HANDLE = -1;
 
-    // GLSL program handle
-    protected int hProgram;
+    // GLSL program reference
+    protected int mProgramRef;
 
     // Vertex shader
     protected GLShader mVertex;
@@ -48,7 +48,7 @@ public class GLProgram {
     protected GLShader mFragment;
 
     public GLProgram() {
-        hProgram = INVALID_HANDLE;
+        mProgramRef = INVALID_GL_HANDLE;
         mVertex = new GLShader();
         mFragment = new GLShader();
     }
@@ -76,21 +76,21 @@ public class GLProgram {
         }
 
         // 2. create texture program and link shader
-        hProgram = glCreateProgram();
-        if (hProgram == 0) {
+        mProgramRef = glCreateProgram();
+        if (mProgramRef == 0) {
             mVertex.delete();
             mFragment.delete();
             throw new PageFlipException("Can't create texture program");
         }
 
         // 3. attach vertex and fragment shader
-        glAttachShader(hProgram, mVertex.handle());
-        glAttachShader(hProgram, mFragment.handle());
-        glLinkProgram(hProgram);
+        glAttachShader(mProgramRef, mVertex.getShaderRef());
+        glAttachShader(mProgramRef, mFragment.getShaderRef());
+        glLinkProgram(mProgramRef);
 
         // 4. check shader link status
         int[] result = new int[1];
-        glGetProgramiv(hProgram, GL_LINK_STATUS, result, 0);
+        glGetProgramiv(mProgramRef, GL_LINK_STATUS, result, 0);
         if (result[0] == 0) {
             delete();
             throw new PageFlipException("Can't link program");
@@ -99,7 +99,7 @@ public class GLProgram {
         // 5. get all variable handles defined in scripts
         // subclass should implement getVarsLocation to be responsible for its
         // own variables in script
-        glUseProgram(hProgram);
+        glUseProgram(mProgramRef);
         getVarsLocation();
         return this;
     }
@@ -111,19 +111,19 @@ public class GLProgram {
         mVertex.delete();
         mFragment.delete();
 
-        if (hProgram != INVALID_HANDLE) {
-            glDeleteProgram(hProgram);
-            hProgram = INVALID_HANDLE;
+        if (mProgramRef != INVALID_GL_HANDLE) {
+            glDeleteProgram(mProgramRef);
+            mProgramRef = INVALID_GL_HANDLE;
         }
     }
 
     /**
-     * Get program handle
+     * Get program GL reference
      *
-     * @return program handle
+     * @return program GL reference for program
      */
-    public int handle() {
-        return hProgram;
+    public int getProgramRef() {
+        return mProgramRef;
     }
 
     /**

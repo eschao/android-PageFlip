@@ -40,15 +40,16 @@ import static android.opengl.GLES20.glShaderSource;
 public class GLShader {
 
     private final static String TAG = "GLShader";
+    private final int INVALID_GL_HANDLE = -1;
 
-    // shader handle
-    int hShader;
+    // shader object reference
+    int mShaderRef;
 
     /**
      * Default constructor
      */
     public GLShader() {
-        hShader = 0;
+        mShaderRef = INVALID_GL_HANDLE;
     }
 
     /**
@@ -70,24 +71,24 @@ public class GLShader {
         }
 
         // create a shader
-        hShader = glCreateShader(type);
-        if (hShader != 0) {
+        mShaderRef = glCreateShader(type);
+        if (mShaderRef != INVALID_GL_HANDLE) {
             // upload shader scripts to GL
-            glShaderSource(hShader, codes);
+            glShaderSource(mShaderRef, codes);
 
             // compile shader scripts
-            glCompileShader(hShader);
+            glCompileShader(mShaderRef);
 
             // get compile results to check if it is successful
             final int[] result = new int[1];
-            glGetShaderiv(hShader, GL_COMPILE_STATUS, result, 0);
+            glGetShaderiv(mShaderRef, GL_COMPILE_STATUS, result, 0);
             if (result[0] == 0) {
                 // delete shader if compile is failed
                 Log.e(TAG, "Can'top compile shader for type: " + type +
                            "Error: " + glGetError());
                 Log.e(TAG, "Compile shader error: " +
-                           glGetShaderInfoLog(hShader));
-                glDeleteShader(hShader);
+                           glGetShaderInfoLog(mShaderRef));
+                glDeleteShader(mShaderRef);
                 throw new PageFlipException("Can't compile shader for" +
                                             "type: " + type);
             }
@@ -103,19 +104,19 @@ public class GLShader {
      * Delete shader
      */
     public void delete() {
-        if (hShader != 0) {
-            glDeleteShader(hShader);
-            hShader = 0;
+        if (mShaderRef != INVALID_GL_HANDLE) {
+            glDeleteShader(mShaderRef);
+            mShaderRef = INVALID_GL_HANDLE;
         }
     }
 
     /**
-     * Get shader handle
+     * Get shader object reference
      *
-     * @return shader handle
+     * @return shader object reference in OpenGL
      */
-    public int handle() {
-        return hShader;
+    public int getShaderRef() {
+        return mShaderRef;
     }
 
     /**

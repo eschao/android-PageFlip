@@ -1,7 +1,7 @@
+precision mediump float;
 uniform sampler2D u_texture;
 uniform sampler2D u_shadow;
 uniform vec4 u_maskColor;
-
 varying vec2 v_texCoord;
 varying float v_shadowX;
 
