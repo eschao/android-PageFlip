@@ -8,6 +8,7 @@ This project is aimed to implement 3D style page flip on Android system based on
  * [Preview](#preview)
  * [Installation](#installation)
    - [Gradle](#gradle)
+ * [Android Version Support](#android-version-support)
  * [Usage](#usage)
    - [Introduce PageFlip Into Your Project](#i-simple-steps-for-introducing-pageflip-into-your-project)
    - [Configure PageFilp](#ii-configure-pageflip)
@@ -49,6 +50,22 @@ dependencies {
     compile 'com.github.eschao:android-PageFlip:v1.0'
 }
 ```
+## Android Version Support
+
+The following versions have been tested on emulator:
+
+Android version | API version | Support |
+----------------|-------------|---------|
+3.2   | API 13 | x |
+4.1   | API 16 | √ |
+4.2   | API 17 | √ |
+4.3   | API 18 | √ |
+4.4   | API 19 | √ |
+5.0   | API 21 | √ |
+5.1   | API 22 | √ |
+6.0   | API 23 | √ |
+7.0   | API 24 | √ |
+7.1.1 | API 25 | √ |
 
 ## Usage
 
