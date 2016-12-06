@@ -96,7 +96,7 @@ More details, please take a look **PageFlipView** in sample application.
 
   There are two page modes provided by **PageFlip**:
   
-  * **Auto Page Mode**: In this mode, **PageFlip** will automatically determine use single page or double pages to present content on screen. That means single page is used for portrait mode and double pages is used for lanscape mode.
+  * **Auto Page Mode**: In this mode, **PageFlip** will automatically decide to use single page or double pages to present content on screen. That means single page is used for portrait mode and double pages is used for lanscape mode.
   * **Single Page Mode**: No matter screen is portait or landscape mode, **PageFlip** always use single page to show content
 
 
