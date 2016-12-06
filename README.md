@@ -47,7 +47,7 @@ and:
 
 ```gradle
 dependencies {
-    compile 'com.github.eschao:android-PageFlip:v1.0'
+    compile 'com.github.eschao:android-PageFlip:v1.0.1'
 }
 ```
 ## Android Version Support
