@@ -188,16 +188,14 @@ class ShadowVertexes {
      */
     public ShadowVertexes addVertexesBackward(float startX, float startY,
                                               float endX, float endY) {
-        mBackward -= 8;
-        int i = mBackward;
-        mVertexes[i++] = startX;
-        mVertexes[i++] = startY;
-        mVertexes[i++] = mColor.startColor;
-        mVertexes[i++] = mColor.startAlpha;
-        mVertexes[i++] = endX;
-        mVertexes[i++] = endY;
-        mVertexes[i++] = mColor.endColor;
-        mVertexes[i] = mColor.endAlpha;
+        mVertexes[--mBackward] = mColor.endAlpha;
+        mVertexes[--mBackward] = mColor.endColor;
+        mVertexes[--mBackward] = endY;
+        mVertexes[--mBackward] = endX;
+        mVertexes[--mBackward] = mColor.startAlpha;
+        mVertexes[--mBackward] = mColor.startColor;
+        mVertexes[--mBackward] = startY;
+        mVertexes[--mBackward] = startX;
         return this;
     }
 

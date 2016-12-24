@@ -50,7 +50,7 @@ import static android.opengl.GLES20.glViewport;
  * @author escchao
  */
 public class PageFlip {
-	final static String TAG	= "PageFlip";
+    final static String TAG    = "PageFlip";
 
     // default pixels of mesh vertex
     private final static int DEFAULT_MESH_VERTEX_PIXELS = 10;
@@ -229,7 +229,7 @@ public class PageFlip {
      */
     public PageFlip(Context context) {
         mContext = context;
-        mScroller = new Scroller(context, new AccelerateInterpolator(), true);
+        mScroller = new Scroller(context);
         mFlipState = PageFlipState.END_FLIP;
         mIsVertical = false;
         mViewRect = new GLViewRect();
@@ -277,9 +277,6 @@ public class PageFlip {
                                              FOLD_BASE_SHADOW_START_ALPHA,
                                              FOLD_BASE_SHADOW_END_COLOR,
                                              FOLD_BASE_SHADOW_END_ALPHA);
-
-        // init default scroller
-        mScroller = new Scroller(context);
     }
 
     /**
@@ -599,7 +596,7 @@ public class PageFlip {
      * @param touchX x of finger down point
      * @param touchY y of finger down point
      */
-	public void onFingerDown(float touchX, float touchY) {
+    public void onFingerDown(float touchX, float touchY) {
         // covert to OpenGL coordinate
         touchX = mViewRect.toOpenGLX(touchX);
         touchY = mViewRect.toOpenGLY(touchY);
@@ -628,7 +625,7 @@ public class PageFlip {
             mTouchP.set(touchX, touchY);
             mFlipState = PageFlipState.BEGIN_FLIP;
         }
-	}
+    }
 
     /**
      * Handle finger moving event
@@ -638,7 +635,7 @@ public class PageFlip {
      * @return true if moving will trigger to draw a new frame for page flip,
      *         False means the movement should be ignored.
      */
-	public boolean onFingerMove(float touchX, float touchY) {
+    public boolean onFingerMove(float touchX, float touchY) {
         touchX = mViewRect.toOpenGLX(touchX);
         touchY = mViewRect.toOpenGLY(touchY);
 
@@ -1010,7 +1007,7 @@ public class PageFlip {
             computeVertexesWhenSlope();
         }
 
-    	return isAnimating;
+        return isAnimating;
     }
 
     /**
@@ -1026,7 +1023,7 @@ public class PageFlip {
      * Abort animating
      */
     public void abortAnimating() {
-    	mScroller.abortAnimation();
+        mScroller.abortAnimation();
         if (mFlipState == PageFlipState.FORWARD_FLIP) {
             mFlipState = PageFlipState.END_WITH_FORWARD;
         }
@@ -1055,7 +1052,7 @@ public class PageFlip {
      * @return true if flip is ended
      */
     public boolean isEndedFlip() {
-    	return mFlipState == PageFlipState.END_FLIP ||
+        return mFlipState == PageFlipState.END_FLIP ||
                mFlipState == PageFlipState.END_WITH_RESTORE ||
                mFlipState == PageFlipState.END_WITH_BACKWARD ||
                mFlipState == PageFlipState.END_WITH_FORWARD;
@@ -1129,7 +1126,7 @@ public class PageFlip {
     /**
      * Draw frame with full page
      */
-	public void drawPageFrame() {
+    public void drawPageFrame() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(mVertexProgram.mProgramRef);
         glUniformMatrix4fv(mVertexProgram.mMVPMatrixLoc, 1, false,
@@ -1143,7 +1140,7 @@ public class PageFlip {
         if (mPages[SECOND_PAGE] != null) {
             mPages[SECOND_PAGE].drawFullPage(mVertexProgram, true);
         }
-	}
+    }
 
     /**
      * Compute max mesh count and allocate vertexes buffer
@@ -1291,22 +1288,22 @@ public class PageFlip {
     /**
      * Compute key vertexes when page flip is slope
      */
-	private void computeKeyVertexesWhenSlope() {
+    private void computeKeyVertexesWhenSlope() {
         final float oX = mPages[FIRST_PAGE].originP.x;
         final float oY = mPages[FIRST_PAGE].originP.y;
 
-		float dX = mMiddleP.x - oX;
-		float dY = mMiddleP.y - oY;
-		
+        float dX = mMiddleP.x - oX;
+        float dY = mMiddleP.y - oY;
+        
         // compute key points on X axis
         float r0 = 1 - mSemiPerimeterRatio;
         float r1 = 1 + mSemiPerimeterRatio;
-		mXFoldP.set(mMiddleP.x + dY * dY / dX, oY);
+        mXFoldP.set(mMiddleP.x + dY * dY / dX, oY);
         mXFoldP0.set(oX + (mXFoldP.x - oX) * r0, mXFoldP.y);
         mXFoldP1.set(oX + r1 * (mXFoldP.x - oX), mXFoldP.y);
 
         // compute key points on Y axis
-		mYFoldP.set(oX, mMiddleP.y + dX * dX / dY);
+        mYFoldP.set(oX, mMiddleP.y + dX * dX / dY);
         mYFoldP0.set(mYFoldP.x, oY + (mYFoldP.y - oY) * r0);
         mYFoldP1.set(mYFoldP.x, oY + r1 * (mYFoldP.y - oY));
 
@@ -1322,7 +1319,7 @@ public class PageFlip {
 
         // compute mesh count
         computeMeshCount();
-	}
+    }
 
     /**
      * Compute back vertex and edge shadow vertex of fold page

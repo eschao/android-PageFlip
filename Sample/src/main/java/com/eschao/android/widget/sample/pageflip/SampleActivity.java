@@ -145,7 +145,7 @@ public class SampleActivity extends Activity implements OnGestureListener {
                 editor.putInt(Constants.PREF_DURATION, 2000);
                 break;
             case R.id.animation_5s:
-                mPageFlipView.setAnimateDuration(25000);
+                mPageFlipView.setAnimateDuration(5000);
                 editor.putInt(Constants.PREF_DURATION, 5000);
                 break;
             case R.id.auoto_page:

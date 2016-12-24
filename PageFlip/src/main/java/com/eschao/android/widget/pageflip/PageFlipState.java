@@ -21,12 +21,12 @@ package com.eschao.android.widget.pageflip;
  * @author eschao
  */
 public enum PageFlipState {
-	BEGIN_FLIP,
-	FORWARD_FLIP,
-	BACKWARD_FLIP,
-	RESTORE_FLIP,
-	END_FLIP,
-	END_WITH_FORWARD,
-	END_WITH_BACKWARD,
-	END_WITH_RESTORE,
+    BEGIN_FLIP,
+    FORWARD_FLIP,
+    BACKWARD_FLIP,
+    RESTORE_FLIP,
+    END_FLIP,
+    END_WITH_FORWARD,
+    END_WITH_BACKWARD,
+    END_WITH_RESTORE,
 }
