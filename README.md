@@ -3,6 +3,8 @@
 # PageFlip
 This project is aimed to implement 3D style page flip on Android system based on OpenGL 2.0.
 
+For **JNI** version, please visit: [**android-PageFlip-JNI**](https://github.com/eschao/android-PageFlip-JNI)
+
 ## Table of Contents
  
  * [Preview](#preview)
