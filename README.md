@@ -68,6 +68,7 @@ Android version | API version | Support |
 6.0   | API 23 | √ |
 7.0   | API 24 | √ |
 7.1.1 | API 25 | √ |
+7.+   | API 26 | √ |
 
 ## Usage
 
