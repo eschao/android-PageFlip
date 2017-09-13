@@ -183,11 +183,11 @@ public final class LoadBitmapTask implements Runnable {
         int newIndex = LARGE_BG;
         if ((w <= 480 && h <= 854) ||
             (w <= 854 && h <= 480)) {
-            mBGSizeIndex = SMALL_BG;
+            newIndex = SMALL_BG;
         }
         else if ((w <= 800 && h <= 1280) ||
                  (h <= 800 && w <= 1280)) {
-            mBGSizeIndex = MEDIUM_BG;
+            newIndex = MEDIUM_BG;
         }
 
         mIsLandscape = w > h;

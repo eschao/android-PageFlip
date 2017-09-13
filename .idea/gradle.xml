@@ -8,9 +8,9 @@
         <option name="gradleHome" value="$APPLICATION_HOME_DIR$/gradle/gradle-2.14.1" />
         <option name="modules">
           <set>
-            <option value="/Volumes/Data/github/android-PageFlip" />
-            <option value="/Volumes/Data/github/android-PageFlip/PageFlip" />
-            <option value="/Volumes/Data/github/android-PageFlip/Sample" />
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/PageFlip" />
+            <option value="$PROJECT_DIR$/Sample" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
