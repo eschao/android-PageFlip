@@ -54,8 +54,7 @@ public class PageFlipView extends GLSurfaceView implements Renderer {
         super(context);
         init(context);
     }
-
-
+    
     public PageFlipView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init(context);
