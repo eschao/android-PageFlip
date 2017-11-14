@@ -22,6 +22,7 @@ import android.opengl.GLSurfaceView.Renderer;
 import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
+import android.util.AttributeSet;
 import android.util.Log;
 
 import com.eschao.android.widget.pageflip.PageFlip;
@@ -51,13 +52,21 @@ public class PageFlipView extends GLSurfaceView implements Renderer {
 
     public PageFlipView(Context context) {
         super(context);
+        init(context);
+    }
 
+
+    public PageFlipView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+        init(context);
+    }
+    private void init(Context context) {
         // create handler to tackle message
         newHandler();
 
         // load preferences
         SharedPreferences pref = PreferenceManager
-                                    .getDefaultSharedPreferences(context);
+                .getDefaultSharedPreferences(context);
         mDuration = pref.getInt(Constants.PREF_DURATION, 1000);
         int pixelsOfMesh = pref.getInt(Constants.PREF_MESH_PIXELS, 10);
         boolean isAuto = pref.getBoolean(Constants.PREF_PAGE_MODE, true);
@@ -65,21 +74,22 @@ public class PageFlipView extends GLSurfaceView implements Renderer {
         // create PageFlip
         mPageFlip = new PageFlip(context);
         mPageFlip.setSemiPerimeterRatio(0.8f)
-                 .setShadowWidthOfFoldEdges(5, 60, 0.3f)
-                 .setShadowWidthOfFoldBase(5, 80, 0.4f)
-                 .setPixelsOfMesh(pixelsOfMesh)
-                 .enableAutoPage(isAuto);
+                .setShadowWidthOfFoldEdges(5, 60, 0.3f)
+                .setShadowWidthOfFoldBase(5, 80, 0.4f)
+                .setPixelsOfMesh(pixelsOfMesh)
+                .enableAutoPage(isAuto);
         setEGLContextClientVersion(2);
 
         // init others
         mPageNo = 1;
         mDrawLock = new ReentrantLock();
         mPageRender = new SinglePageRender(context, mPageFlip,
-                                           mHandler, mPageNo);
+                mHandler, mPageNo);
         // configure render
         setRenderer(this);
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
     }
+
 
     /**
      * Is auto page mode enabled?
