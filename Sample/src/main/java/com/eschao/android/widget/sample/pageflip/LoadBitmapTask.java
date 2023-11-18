@@ -219,14 +219,14 @@ public final class LoadBitmapTask implements Runnable {
         mPreRandomNo = newNo;
         int resId = mPortraitBGs[mBGSizeIndex][newNo];
         Bitmap b = BitmapFactory.decodeResource(mResources, resId);
-        if (mIsLandscape) {
-            Matrix matrix = new Matrix();
-            matrix.postRotate(90);
-            Bitmap lb = Bitmap.createBitmap(b, 0, 0, b.getWidth(), b.getHeight(),
-                                    matrix, true);
-            b.recycle();
-            return lb;
-        }
+        // if (mIsLandscape) {
+        //     Matrix matrix = new Matrix();
+        //     matrix.postRotate(90);
+        //     Bitmap lb = Bitmap.createBitmap(b, 0, 0, b.getWidth(), b.getHeight(),
+        //                             matrix, true);
+        //     b.recycle();
+        //     return lb;
+        // }
 
         return b;
     }
